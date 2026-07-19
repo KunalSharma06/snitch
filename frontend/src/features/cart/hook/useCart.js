@@ -1,6 +1,6 @@
 import { addItem, getCart, incrementCartItemApi, decrementCartItemApi, removeItemApi } from "../service/cart.api.js";
 import { useDispatch } from "react-redux";
-import { addItem as addItemToCart, setItems, incrementCartItem, removeItem } from "../state/cart.slice.js";
+import { setCart, incrementCartItem, removeItem } from "../state/cart.slice.js";
 
 export const useCart = () => {
   const dispatch = useDispatch();
@@ -9,7 +9,7 @@ export const useCart = () => {
     const data = await addItem({ productId, variantId });
     // Update Redux state so the cart badge count updates immediately
     if (data?.cart?.items) {
-      dispatch(setItems(data.cart.items));
+      dispatch(setCart(data.cart));
     } else {
       // Fallback: push a minimal item so badge increments
       dispatch(addItemToCart({ productId, variantId, quantity: 1 }));
@@ -19,13 +19,13 @@ export const useCart = () => {
 
   async function handleGetCart() {
     const data = await getCart();
-    dispatch(setItems(data.cart.items))
+    dispatch(setCart(data.cart))
   }
 
   async function handleIncrementCartItem({ productId, variantId }) {
     const data = await incrementCartItemApi({ productId, variantId });
     if (data?.cart?.items) {
-      dispatch(setItems(data.cart.items));
+      dispatch(setCart(data.cart));
     }
     return data;
   }
@@ -33,7 +33,7 @@ export const useCart = () => {
   async function handleDecrementCartItem({ productId, variantId }) {
     const data = await decrementCartItemApi({ productId, variantId });
     if (data?.cart?.items) {
-      dispatch(setItems(data.cart.items));
+      dispatch(setCart(data.cart));
     }
     return data;
   }
