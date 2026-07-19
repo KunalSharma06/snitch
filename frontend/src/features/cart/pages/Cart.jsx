@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useCart } from "../hook/useCart";
 import { Link, useNavigate } from "react-router";
+import { useRazorpay} from "react-razorpay";
 
 /* ─── Inline styles & tokens matching the "Avenue Montaigne" design system ─── */
 const tokens = {
@@ -22,8 +23,10 @@ const tokens = {
 
 const Cart = () => {
   const cart = useSelector((state) => state.cart);
-  const { handleGetCart, handleRemoveItem, handleIncrementCartItem, handleDecrementCartItem } = useCart();
+  const { handleGetCart, handleRemoveItem, handleIncrementCartItem, handleDecrementCartItem, handleCreateCartOrder, handleVerifyCartOrder } = useCart();
   const navigate = useNavigate();
+  const { error, isLoading, Razorpay } = useRazorpay();
+  const user = useSelector((state) => state.auth.user);
 
   /* Local quantity state — key: cartItem._id, value: number */
   const [quantities, setQuantities] = useState({});
@@ -33,8 +36,6 @@ const Cart = () => {
   useEffect(() => {
     handleGetCart();
   }, []);
-
-  console.log("Cart Items:", cart);
 
   /* Sync local qty state when cartItems arrive */
 
@@ -51,7 +52,7 @@ const Cart = () => {
     const variantDetail = getVariantDetails(product, variantId);
     const stock = variantDetail?.stock;
     if (delta > 0 && stock !== undefined && newQty > stock) {
-      setToast({ open: true, message: `Only ${stock} items available in stock.` });
+      setToast({ open: true, message: `Only ${stock} items available in stock.` })
       setTimeout(() => setToast({ open: false, message: '' }), 3000);
       return;
     }
@@ -100,6 +101,36 @@ const Cart = () => {
 
   const formatCurrency = (amount, currency = "INR") =>
     `${currency} ${Number(amount).toLocaleString("en-IN")}`;
+
+  async function handleCheckout() {
+    const order = await handleCreateCartOrder();
+    
+    const options = {
+      key: "YOUR_RAZORPAY_KEY",
+      amount: order.amount, // Amount in paise
+      currency: order.currency,
+      name: "Snitch",
+      description: "Test Transaction",
+      order_id: order.id, // Generate order_id on server
+      handler:async (response) => {
+       const isValid = await handleVerifyCartOrder(response);
+        if (isValid) {
+          navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
+        }
+      },
+      prefill: {
+        name: user?.fullName,
+        email: user?.email,
+        contact: user?.contact,
+      },
+      theme: {
+        color: tokens.primary,
+      },
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.open();
+  }
 
   /* ─── Empty state ─── */
   if (!cart?.items?.length) {
@@ -522,6 +553,7 @@ const Cart = () => {
                   style={{
                     backgroundColor: tokens.onSurface,
                     color: tokens.surface,
+                    cursor: 'pointer',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = tokens.primary;
@@ -531,6 +563,7 @@ const Cart = () => {
                     e.currentTarget.style.backgroundColor = tokens.onSurface;
                     e.currentTarget.style.color = tokens.surface;
                   }}
+                  onClick={handlePayment}
                 >
                   Proceed to Checkout
                 </button>
