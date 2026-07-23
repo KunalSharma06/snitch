@@ -40,8 +40,11 @@ export const useCart = () => {
 
   async function handleRemoveItem({ productId, variantId }) {
     const data = await removeItemApi({ productId, variantId });
-    // Filter locally to preserve populated item details in Redux
-    dispatch(removeItem({ productId, variantId }));
+    if (data?.cart) {
+      dispatch(setCart(data.cart));
+    } else {
+      dispatch(removeItem({ productId, variantId }));
+    }
     return data;
   }
 

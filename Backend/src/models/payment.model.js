@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import priceSchema from "./price.model.js";
+import priceSchema from "./price.schema.js";
 
 const paymentSchema = new mongoose.Schema({
   status: {

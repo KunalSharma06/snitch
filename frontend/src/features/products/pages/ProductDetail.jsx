@@ -55,7 +55,6 @@ const ProductDetail = () => {
     });
   }, [product, selectedAttributes]);
 
-  console.log({ product, activeVariant });
 
   // For each attribute key, compute the set of values that are reachable
   // given the currently selected OTHER attributes. This prevents unrelated
@@ -94,6 +93,27 @@ const ProductDetail = () => {
 
     return attrs;
   }, [product, selectedAttributes]);
+
+  const allAttributes = useMemo(() => {
+    if (!product?.variants) return {};
+
+    const attrs = {};
+    product.variants.forEach((v) => {
+      if (!v.attributes) return;
+      Object.entries(v.attributes).forEach(([key, val]) => {
+        if (!attrs[key]) {
+          attrs[key] = new Set();
+        }
+        attrs[key].add(val);
+      });
+    });
+
+    const result = {};
+    Object.entries(attrs).forEach(([key, set]) => {
+      result[key] = Array.from(set);
+    });
+    return result;
+  }, [product]);
 
   useEffect(() => {
     setSelectedImage(0);
@@ -171,10 +191,22 @@ const ProductDetail = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-12 lg:pt-20">
+        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-4 lg:pt-6">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.22em] text-[#7A6E63] hover:text-[#1b1c1a] transition-colors duration-300"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 , fontFamily: "sans-serif"}}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ transform: "translateY(-1px)" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M10 19l-7-7 7-7" />
+            </svg>
+            <span>Back</span>
+          </button>
+
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start">
             {/* ── LEFT: Image Gallery ── */}
-            <div className="w-full lg:w-[70%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
+            <div className="w-full lg:w-[55%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
               {/* Thumbnails (Vertical on Desktop, Horizontal on Mobile) */}
               {displayImages.length > 1 && (
                 <div className="flex flex-row md:flex-col gap-4 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide w-full md:w-20 lg:w-24 flex-shrink-0 md:max-h-[calc(100vh-200px)]">
@@ -315,33 +347,41 @@ const ProductDetail = () => {
               />
 
               {/* Options/Variants */}
-              {Object.entries(availableAttributes).map(([attrName, values]) => (
-                <div key={attrName} className="mb-6">
-                  <h3
-                    className="text-[10px] uppercase tracking-[0.24em] font-medium mb-3"
-                    style={{ color: "#C9A96E" }}
-                  >
-                    {attrName}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {values.map((val) => {
-                      const isSelected = selectedAttributes[attrName] === val;
-                      return (
-                        <button
-                          key={val}
-                          onClick={() => handleAttributeChange(attrName, val)}
-                          className={`px-4 py-2 text-[11px] uppercase tracking-[0.15em] font-medium transition-all duration-300 border ${isSelected ? "border-[#1b1c1a] bg-[#1b1c1a] text-[#fbf9f6]" : "border-[#d0c5b5] text-[#1b1c1a] hover:border-[#1b1c1a]"}`}
-                          style={
-                            isSelected ? {} : { backgroundColor: "transparent" }
-                          }
-                        >
-                          {val}
-                        </button>
-                      );
-                    })}
+              {Object.entries(allAttributes).map(([attrName, values]) => {
+                const isSize = attrName.toLowerCase() === "size";
+
+                return (
+                  <div key={attrName} className="mb-6">
+                    <h3
+                      className="text-[10px] uppercase tracking-[0.24em] font-medium mb-3"
+                      style={{ color: "#C9A96E" }}
+                    >
+                      {attrName}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map((val) => {
+                        const isSelected = selectedAttributes[attrName] === val;
+                        const isCompatible = availableAttributes[attrName]?.includes(val);
+                        const shouldDisable = isSize && !isCompatible;
+
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => handleAttributeChange(attrName, val)}
+                            className={`px-4 py-2 text-[11px] uppercase tracking-[0.15em] font-medium transition-all duration-300 border ${isSelected ? "border-[#1b1c1a] bg-[#1b1c1a] text-[#fbf9f6]" : "border-[#d0c5b5] text-[#1b1c1a] hover:border-[#1b1c1a]"} ${shouldDisable && !isSelected ? "opacity-30 cursor-not-allowed border-[#e4e2df] line-through" : ""}`}
+                            style={
+                              isSelected ? {} : { backgroundColor: "transparent" }
+                            }
+                            disabled={shouldDisable}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Stock Information */}
               {activeVariant && activeVariant.stock !== undefined && (

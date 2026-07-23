@@ -563,7 +563,7 @@ const Cart = () => {
                     e.currentTarget.style.backgroundColor = tokens.onSurface;
                     e.currentTarget.style.color = tokens.surface;
                   }}
-                  onClick={handlePayment}
+                  onClick={handleCheckout}
                 >
                   Proceed to Checkout
                 </button>

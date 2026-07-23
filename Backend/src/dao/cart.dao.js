@@ -6,7 +6,7 @@ export async function getCartDetails(userId) {
      await cartModel.aggregate([
        {
          $match: {
-           user: new mongoose.Types.ObjectId(user._id),
+           user: new mongoose.Types.ObjectId(userId),
          },
        },
        { $unwind: { path: "$items" } },
