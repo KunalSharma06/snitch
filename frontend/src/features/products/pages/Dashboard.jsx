@@ -1,20 +1,37 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useProduct } from "../hook/useProduct";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import ConfirmModal from "../../Shared/Components/ConfirmModel.jsx";
 
 const Dashboard = () => {
-  const { handleGetSellerProduct } = useProduct();
+  const { handleGetSellerProduct, handleDeleteProduct } = useProduct();
   const sellerProducts = useSelector((state) => state.product.sellerProducts);
   const navigate = useNavigate();
+
+  const [deleteTarget, setDeleteTarget] = useState(null); // product object being confirmed
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     handleGetSellerProduct();
   }, []);
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await handleDeleteProduct(deleteTarget._id);
+      await handleGetSellerProduct(); // refresh list
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Failed to delete product", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <>
-      {/* Google Fonts */}
       <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet"
@@ -28,8 +45,6 @@ const Dashboard = () => {
         }}
       >
         <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24">
-
-          {/* ── Page Header ── */}
           <div className="pt-10 pb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 overflow-hidden">
             <div>
               <h1
@@ -41,7 +56,6 @@ const Dashboard = () => {
               >
                 Your Vault
               </h1>
-              {/* Gold rule separator */}
               <div
                 className="mt-4 w-14 h-px"
                 style={{ backgroundColor: "#C9A96E" }}
@@ -69,24 +83,19 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* ── Product Grid ── */}
           {sellerProducts && sellerProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16 pb-24">
               {sellerProducts.map((product) => {
                 const imageUrl =
                   product.images && product.images.length > 0
                     ? product.images[0].url
-                    : "/snitch_editorial_warm.png"; // Fallback to our warm editorial
+                    : "/snitch_editorial_warm.png";
 
                 return (
-                  <div
-                    onClick={() => {navigate(`/seller/product/${product._id}`)}}
-                    key={product._id}
-                    className="group cursor-pointer flex flex-col"
-                  >
-                    {/* Image Container */}
+                  <div key={product._id} className="group flex flex-col">
                     <div
-                      className="aspect-[4/5] overflow-hidden mb-6"
+                      onClick={() => navigate(`/seller/product/${product._id}`)}
+                      className="aspect-[4/5] overflow-hidden mb-6 cursor-pointer relative"
                       style={{ backgroundColor: "#f5f3f0" }}
                     >
                       <img
@@ -96,11 +105,13 @@ const Dashboard = () => {
                       />
                     </div>
 
-                    {/* Product Details */}
                     <div className="flex flex-col gap-2">
                       <div className="flex items-start justify-between gap-4">
                         <h3
-                          className="text-xl leading-snug transition-colors duration-300 group-hover:text-[#C9A96E]"
+                          onClick={() =>
+                            navigate(`/seller/product/${product._id}`)
+                          }
+                          className="text-xl leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] cursor-pointer"
                           style={{
                             fontFamily: "'Cormorant Garamond', serif",
                             color: "#1b1c1a",
@@ -117,7 +128,7 @@ const Dashboard = () => {
                         {product.description}
                       </p>
 
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center justify-between">
                         <span
                           className="text-[10px] uppercase tracking-[0.2em] font-medium"
                           style={{ color: "#1b1c1a" }}
@@ -125,6 +136,16 @@ const Dashboard = () => {
                           {product.price?.currency}{" "}
                           {product.price?.amount?.toLocaleString()}
                         </span>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(product);
+                          }}
+                          className="text-[10px] uppercase tracking-[0.15em] font-medium text-[#ba1a1a] hover:text-[#8f1414] transition-colors cursor-pointer"
+                        >
+                          Remove
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -153,6 +174,16 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="Remove this product?"
+        message={`"${deleteTarget?.title}" and all its variants will be permanently removed. This cannot be undone.`}
+        confirmText="Remove"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        isProcessing={isDeleting}
+      />
     </>
   );
 };

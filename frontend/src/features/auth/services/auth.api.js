@@ -1,38 +1,103 @@
-import axios from "axios"
+import { applyMiddleware } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const API_URL = axios.create({
-  baseURL: "/api/auth",
-  withCredentials: true
-})
+const API_BASE_URL = "http://localhost:3000/api";
 
-export async function register({ email, contact, password, fullName, isSeller }) {
-  const res = await API_URL.post("/register", {
-    email,
-    contact,
-    password,
-    fullName,
-    isSeller
-  })
-  console.log(res.data);
-  return res.data;
-}
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+// Request OTP for registration
+export const requestOTP = async (userData) => {
+  try {
+    const response = await api.post("/auth/request-otp", {
+      fullName: userData.fullName,
+      email: userData.email,
+      contact: userData.contact,
+      password: userData.password,
+      isSeller: userData.isSeller,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Verify OTP and register user
+export const verifyOTPAndRegister = async (email, otp) => {
+  try {
+    const response = await api.post("/auth/verify-otp", {
+      email,
+      otp,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Resend OTP
+export const resendOTP = async (email, fullName) => {
+  try {
+    const response = await api.post("/auth/resend-otp", {
+      email,
+      fullName,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Login user (existing function)
+export const login = async (credentials) => {
+  try {
+    const response = await api.post("/auth/login", {
+      email: credentials.email,
+      password: credentials.password,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Get current user (existing function)
+export const getMe = async () => {
+  try {
+    const response = await api.get("/auth/me");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// Logout user (existing function)
+export const logout = async () => {
+  try {
+    const response = await api.post("/auth/logout");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+export const forgotPassword = async (email) => {
+  const { data } = await api.post("/auth/forgot-password", { email });
+  return data;
+};
+
+export const verifyResetOTP = async (email, otp) => {
+  const { data } = await api.post("/auth/verify-reset-otp", { email, otp });
+  return data;
+};
 
 
+export const resetPassword = async (resetToken, newPassword) => {
+  const { data } = await api.post("/auth/reset-password", { resetToken, newPassword });
+  return data;
+};
 
-export async function login({ email, password }) {
-  const res = await API_URL.post("/login", {
-    email,
-    password,
-  })
-  return res.data;
-}
-
-export async function getMe() {
-  const res = await API_URL.get("/me");
-  return res.data;
-}
-
-export async function logout() {
-  const res = await API_URL.post("/logout");
-  return res.data;
-}
+export default api;

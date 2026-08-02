@@ -62,3 +62,13 @@ export async function updateVariantApi(productId, variantId, { priceAmount, pric
   });
   return res.data;
 }
+
+export async function deleteProduct(productId) {
+  const res = await productApiInstance.delete(`/${productId}`);
+  return res.data;
+}
+
+export async function deleteVariant(productId, variantId) {
+  const res = await productApiInstance.delete(`/${productId}/variants/${variantId}`);
+  return res.data;
+}

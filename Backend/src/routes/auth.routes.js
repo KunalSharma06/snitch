@@ -1,15 +1,42 @@
 import { Router } from 'express';
-import { validateLogin, validateRegister } from '../validators/auth.validator.js';
-import { getMe, googleCallback, loginUser, registerUser, logoutUser } from '../controllers/auth.controller.js';
+import { 
+  getMe, 
+  googleCallback, 
+  loginUser, 
+  logoutUser,
+  requestOTP,
+  verifyOTPAndRegister,
+  resendOTP,
+  forgotPassword,
+  resetPassword,
+  verifyResetOTP
+} from '../controllers/auth.controller.js';
 import passport from 'passport';
 import { authenticateUser } from '../middlewares/auth.middleware.js';
 
+
 const authRouter = Router();
 
-authRouter.post('/register', validateRegister, registerUser)
-authRouter.post('/login', validateLogin, loginUser)
-authRouter.post('/logout', logoutUser)
-authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
+// OTP-based registration flow
+authRouter.post('/request-otp', requestOTP);  // Step 1: Request OTP
+authRouter.post('/verify-otp', verifyOTPAndRegister);  // Step 2: Verify OTP and register
+authRouter.post('/resend-otp', resendOTP);  // Resend OTP
+
+// Login
+authRouter.post('/login', loginUser);
+
+// Logout
+authRouter.post('/logout', logoutUser);
+
+authRouter.post("/forgot-password", forgotPassword);
+authRouter.post("/verify-reset-otp", verifyResetOTP);
+authRouter.post("/reset-password", resetPassword);
+
+// Google OAuth
+authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 authRouter.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login' }), googleCallback);
+
+// Get current user
 authRouter.get("/me", authenticateUser, getMe);
+
 export default authRouter;

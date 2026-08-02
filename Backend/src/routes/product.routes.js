@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateSeller } from '../middlewares/auth.middleware.js';
-import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSellerProducts, updateVariantStock, updateProduct, updateVariant } from '../controllers/product.controller.js';
+import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant} from '../controllers/product.controller.js';
 import multer from 'multer';
 import { createProductValidator } from '../validators/product.validator.js';
 
@@ -21,6 +21,8 @@ productRouter.post("/:productId/variants", authenticateSeller, upload.array('ima
 productRouter.put("/:productId/variants/:variantId/stock", authenticateSeller, updateVariantStock);
 productRouter.patch("/:productId/variants/:variantId", authenticateSeller, updateVariant);
 productRouter.patch("/:productId", authenticateSeller, updateProduct);
+productRouter.delete("/:productId", authenticateSeller, deleteProduct);
+productRouter.delete("/:productId/variants/:variantId", authenticateSeller, deleteVariant);
 
 
 export default productRouter;

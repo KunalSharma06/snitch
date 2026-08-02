@@ -1,29 +1,33 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../hook/useAuth";
 import { useNavigate } from "react-router";
-import ContinueWithGoogle from "../components/ContinueWithGoogle";
 
-const Register = () => {
-  const { handleRequestOTP, handleVerifyOTP, handleResendOTP } = useAuth();
+const RegisterOTP = () => {
+  // const { handleRequestOTP, handleVerifyOTP, handleResendOTP } = useAuth();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState("form"); // "form" | "otp"
+  const [step, setStep] = useState("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
     fullName: "",
-    contactNumber: "",
     email: "",
+    contact: "",
     password: "",
+    confirmPassword: "",
     isSeller: false,
   });
 
-  const [otp, setOtp] = useState("");
+  const [otpData, setOtpData] = useState({
+    otp: "",
+    email: "",
+  });
+
   const otpInputsRef = useRef([]);
 
-  const handleChange = (e) => {
+  const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -31,84 +35,108 @@ const Register = () => {
     }));
   };
 
-  // Step 1: submit form -> request OTP -> switch to OTP screen
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccessMessage("");
-    setLoading(true);
-
-    try {
-      await handleRequestOTP({
-        email: formData.email,
-        contact: formData.contactNumber,
-        password: formData.password,
-        isSeller: formData.isSeller,
-        fullName: formData.fullName,
-      });
-
-      setSuccessMessage("OTP sent to your email!");
-      setStep("otp");
-      setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
-    } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Error sending OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // OTP box handlers
   const handleOtpChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
-    const newOtp = otp.split("");
+    const newOtp = otpData.otp.split("");
     newOtp[index] = value;
     const otpString = newOtp.join("").slice(0, 6);
-    setOtp(otpString);
+    setOtpData((prev) => ({ ...prev, otp: otpString }));
     if (value && index < 5) {
       otpInputsRef.current[index + 1]?.focus();
     }
   };
 
   const handleOtpKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otpData.otp[index] && index > 0) {
       otpInputsRef.current[index - 1]?.focus();
     }
   };
 
-  // Step 2: verify OTP -> complete registration
-  const handleVerifySubmit = async (e) => {
+  const handleRequestOTP = async (e) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
 
-    if (otp.length !== 6) {
-      setError("Please enter a valid 6-digit OTP");
+    if (!formData.fullName.trim()) {
+      setError("Full name is required");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      return;
+    }
+    if (!formData.password) {
+      setError("Password is required");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
+
     try {
-      await handleVerifyOTP(formData.email, otp);
-      setSuccessMessage("Account created successfully!");
-      setTimeout(() => navigate("/"), 1500);
+      await handleRequestOTP({
+        fullName: formData.fullName,
+        email: formData.email,
+        contact: formData.contact || null,
+        password: formData.password,
+        isSeller: formData.isSeller,
+      });
+
+      setOtpData((prev) => ({ ...prev, email: formData.email, otp: "" }));
+      setSuccessMessage("OTP sent to your email!");
+      setStep("otp");
+      setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Invalid OTP. Please try again.");
+      setError(err.message || "Error sending OTP");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResend = async () => {
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccessMessage("");
+
+    if (!otpData.otp || otpData.otp.length !== 6) {
+      setError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await handleVerifyOTP(otpData.email, otpData.otp);
+      setSuccessMessage("Email verified! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (err) {
+      setError(err.message || "Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
     setError("");
     setSuccessMessage("");
     setLoading(true);
+
     try {
-      await handleResendOTP(formData.email, formData.fullName);
+      await handleResendOTP(otpData.email, formData.fullName);
       setSuccessMessage("New OTP sent to your email");
-      setOtp("");
+      setOtpData((prev) => ({ ...prev, otp: "" }));
       setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Error resending OTP");
+      setError(err.message || "Error resending OTP");
     } finally {
       setLoading(false);
     }
@@ -117,8 +145,8 @@ const Register = () => {
   const handleBackToForm = () => {
     setStep("form");
     setError("");
+    setOtpData((prev) => ({ ...prev, otp: "" }));
     setSuccessMessage("");
-    setOtp("");
   };
 
   const inputStyle = {
@@ -130,6 +158,7 @@ const Register = () => {
   const handleFocus = (e) => {
     e.target.style.borderBottomColor = "#C9A96E";
   };
+
   const handleBlur = (e) => {
     e.target.style.borderBottomColor = "#d0c5b5";
   };
@@ -148,7 +177,6 @@ const Register = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        {/* ── LEFT: Editorial Image Panel ── */}
         <div
           className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
           style={{ backgroundColor: "#f5f3f0" }}
@@ -183,7 +211,7 @@ const Register = () => {
               >
                 Define your
                 <br />
-                <em>aesthetic.</em>
+                aesthetic
               </p>
               <p
                 className="text-sm font-light leading-relaxed max-w-xs"
@@ -196,7 +224,6 @@ const Register = () => {
           </div>
         </div>
 
-        {/* ── RIGHT: Form Panel ── */}
         <div
           className="w-full lg:w-1/2 flex items-center justify-center min-h-screen px-8 sm:px-14 lg:px-20 py-16 overflow-y-auto"
           style={{ backgroundColor: "#fbf9f6" }}
@@ -214,7 +241,6 @@ const Register = () => {
               </span>
             </div>
 
-            {/* ============ STEP 1: REGISTER FORM ============ */}
             {step === "form" && (
               <>
                 <div className="mb-12">
@@ -231,7 +257,7 @@ const Register = () => {
                       color: "#1b1c1a",
                     }}
                   >
-                    Elevate Your Style
+                    Create Account
                   </h1>
                 </div>
 
@@ -248,24 +274,27 @@ const Register = () => {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-9">
+                <form
+                  onSubmit={handleRequestOTP}
+                  className="flex flex-col gap-9"
+                >
                   <div className="flex flex-col gap-2">
                     <label
-                      htmlFor="reg-fullName"
+                      htmlFor="fullName"
                       className="text-[10px] uppercase tracking-[0.18em] font-medium"
                       style={{ color: "#7A6E63" }}
                     >
                       Full Name
                     </label>
                     <input
-                      id="reg-fullName"
+                      id="fullName"
                       type="text"
                       name="fullName"
                       value={formData.fullName}
-                      onChange={handleChange}
+                      onChange={handleFormChange}
                       required
-                      placeholder="e.g. John Doe"
-                      className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+                      placeholder="John Doe"
+                      className="w-full bg-transparent outline-none py-3 text-sm"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -274,44 +303,21 @@ const Register = () => {
 
                   <div className="flex flex-col gap-2">
                     <label
-                      htmlFor="reg-contact"
-                      className="text-[10px] uppercase tracking-[0.18em] font-medium"
-                      style={{ color: "#7A6E63" }}
-                    >
-                      Contact Number
-                    </label>
-                    <input
-                      id="reg-contact"
-                      type="tel"
-                      name="contactNumber"
-                      value={formData.contactNumber}
-                      onChange={handleChange}
-                      required
-                      placeholder="+91 98765 43210"
-                      className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
-                      style={inputStyle}
-                      onFocus={handleFocus}
-                      onBlur={handleBlur}
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="reg-email"
+                      htmlFor="email"
                       className="text-[10px] uppercase tracking-[0.18em] font-medium"
                       style={{ color: "#7A6E63" }}
                     >
                       Email Address
                     </label>
                     <input
-                      id="reg-email"
+                      id="email"
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleChange}
+                      onChange={handleFormChange}
                       required
                       placeholder="hello@example.com"
-                      className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+                      className="w-full bg-transparent outline-none py-3 text-sm"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -320,21 +326,66 @@ const Register = () => {
 
                   <div className="flex flex-col gap-2">
                     <label
-                      htmlFor="reg-password"
+                      htmlFor="contact"
+                      className="text-[10px] uppercase tracking-[0.18em] font-medium"
+                      style={{ color: "#7A6E63" }}
+                    >
+                      Contact Number
+                    </label>
+                    <input
+                      id="contact"
+                      type="tel"
+                      name="contact"
+                      value={formData.contact}
+                      onChange={handleFormChange}
+                      placeholder="+91 98765 43210"
+                      className="w-full bg-transparent outline-none py-3 text-sm"
+                      style={inputStyle}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="password"
                       className="text-[10px] uppercase tracking-[0.18em] font-medium"
                       style={{ color: "#7A6E63" }}
                     >
                       Password
                     </label>
                     <input
-                      id="reg-password"
+                      id="password"
                       type="password"
                       name="password"
                       value={formData.password}
-                      onChange={handleChange}
+                      onChange={handleFormChange}
                       required
-                      placeholder="••••••••"
-                      className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+                      placeholder="Enter password"
+                      className="w-full bg-transparent outline-none py-3 text-sm"
+                      style={inputStyle}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="confirmPassword"
+                      className="text-[10px] uppercase tracking-[0.18em] font-medium"
+                      style={{ color: "#7A6E63" }}
+                    >
+                      Confirm Password
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleFormChange}
+                      required
+                      placeholder="Confirm password"
+                      className="w-full bg-transparent outline-none py-3 text-sm"
                       style={inputStyle}
                       onFocus={handleFocus}
                       onBlur={handleBlur}
@@ -342,51 +393,20 @@ const Register = () => {
                   </div>
 
                   <label
-                    htmlFor="reg-isSeller"
-                    className="flex items-center gap-4 cursor-pointer group"
+                    htmlFor="isSeller"
+                    className="flex items-center gap-4 cursor-pointer"
                   >
-                    <div className="relative flex-shrink-0">
-                      <input
-                        id="reg-isSeller"
-                        type="checkbox"
-                        name="isSeller"
-                        checked={formData.isSeller}
-                        onChange={handleChange}
-                        className="peer sr-only"
-                      />
-                      <div
-                        className="w-4 h-4 border transition-all duration-200 flex items-center justify-center peer-checked:border-[#C9A96E]"
-                        style={{
-                          borderColor: formData.isSeller
-                            ? "#C9A96E"
-                            : "#d0c5b5",
-                          backgroundColor: formData.isSeller
-                            ? "#C9A96E"
-                            : "transparent",
-                        }}
-                      >
-                        {formData.isSeller && (
-                          <svg
-                            className="w-2.5 h-2.5"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M2 6l3 3 5-5"
-                              stroke="#fbf9f6"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
+                    <input
+                      id="isSeller"
+                      type="checkbox"
+                      name="isSeller"
+                      checked={formData.isSeller}
+                      onChange={handleFormChange}
+                      className="w-4 h-4"
+                    />
                     <span
-                      className="text-[11px] uppercase tracking-[0.15em] transition-colors duration-200"
-                      style={{
-                        color: formData.isSeller ? "#C9A96E" : "#7A6E63",
-                      }}
+                      className="text-[11px] uppercase tracking-[0.15em]"
+                      style={{ color: "#7A6E63" }}
                     >
                       Register as Seller
                     </span>
@@ -395,11 +415,10 @@ const Register = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 disabled:opacity-50"
+                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 disabled:opacity-50"
                     style={{
                       backgroundColor: "#1b1c1a",
                       color: "#fbf9f6",
-                      fontFamily: "'Inter', sans-serif",
                     }}
                     onMouseEnter={(e) => {
                       if (!loading) {
@@ -412,44 +431,18 @@ const Register = () => {
                       e.currentTarget.style.color = "#fbf9f6";
                     }}
                   >
-                    {loading ? "Sending OTP..." : "Sign Up"}
+                    {loading ? "Sending OTP..." : "Get OTP"}
                   </button>
 
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="flex-1 h-px"
-                      style={{ backgroundColor: "#e4e2df" }}
-                    />
-                    <span
-                      className="text-[10px] uppercase tracking-[0.15em]"
-                      style={{ color: "#B5ADA3" }}
-                    >
-                      or
-                    </span>
-                    <div
-                      className="flex-1 h-px"
-                      style={{ backgroundColor: "#e4e2df" }}
-                    />
-                  </div>
-
-                  <ContinueWithGoogle />
-
                   <p
-                    className="text-center text-[11px]"
-                    style={{ color: "#B5ADA3" }}
+                    style={{
+                      color: "#B5ADA3",
+                      textAlign: "center",
+                      fontSize: "11px",
+                    }}
                   >
                     Already have an account?{" "}
-                    <a
-                      href="/login"
-                      className="transition-colors duration-200"
-                      style={{
-                        color: "#7A6E63",
-                        textDecoration: "underline",
-                        textUnderlineOffset: "3px",
-                      }}
-                      onMouseEnter={(e) => (e.target.style.color = "#C9A96E")}
-                      onMouseLeave={(e) => (e.target.style.color = "#7A6E63")}
-                    >
+                    <a href="/login" style={{ color: "#7A6E63" }}>
                       Sign in
                     </a>
                   </p>
@@ -457,7 +450,6 @@ const Register = () => {
               </>
             )}
 
-            {/* ============ STEP 2: OTP VERIFICATION ============ */}
             {step === "otp" && (
               <>
                 <div className="mb-12">
@@ -478,14 +470,8 @@ const Register = () => {
                   </h1>
                 </div>
 
-                <p
-                  style={{
-                    color: "#7A6E63",
-                    marginBottom: "8px",
-                    fontSize: "13px",
-                  }}
-                >
-                  Code sent to: {formData.email}
+                <p style={{ color: "#7A6E63", marginBottom: "8px" }}>
+                  Code sent to: {otpData.email}
                 </p>
                 <p
                   style={{
@@ -494,7 +480,7 @@ const Register = () => {
                     marginBottom: "24px",
                   }}
                 >
-                  Expires in 3 minutes
+                  Expires in 10 minutes
                 </p>
 
                 {error && (
@@ -530,7 +516,7 @@ const Register = () => {
                 )}
 
                 <form
-                  onSubmit={handleVerifySubmit}
+                  onSubmit={handleVerifyOTP}
                   className="flex flex-col gap-8"
                 >
                   <div className="flex flex-col gap-4">
@@ -551,9 +537,8 @@ const Register = () => {
                           key={index}
                           ref={(el) => (otpInputsRef.current[index] = el)}
                           type="text"
-                          inputMode="numeric"
                           maxLength="1"
-                          value={otp[index] || ""}
+                          value={otpData.otp[index] || ""}
                           onChange={(e) =>
                             handleOtpChange(index, e.target.value)
                           }
@@ -564,29 +549,24 @@ const Register = () => {
                             textAlign: "center",
                             fontSize: "24px",
                             fontWeight: "bold",
-                            border: `2px solid ${otp[index] ? "#C9A96E" : "#b8a893"}`,
-                            borderRadius: "8px",
-                            backgroundColor: "#ffffff",
+                            borderBottom: `2px solid ${
+                              otpData.otp[index] ? "#C9A96E" : "#d0c5b5"
+                            }`,
+                            backgroundColor: "transparent",
                             color: "#1b1c1a",
                             fontFamily: "'Inter', sans-serif",
+                            border: "none",
                             outline: "none",
-                            boxShadow: otp[index]
-                              ? "0 0 0 3px rgba(201,169,110,0.15)"
-                              : "0 1px 3px rgba(0,0,0,0.06)",
-                            transition: "all 0.2s ease",
                           }}
                           onFocus={(e) => {
-                            e.target.style.borderColor = "#C9A96E";
-                            e.target.style.boxShadow =
-                              "0 0 0 3px rgba(201,169,110,0.15)";
+                            e.target.style.borderBottomColor = "#C9A96E";
                           }}
                           onBlur={(e) => {
-                            e.target.style.borderColor = otp[index]
+                            e.target.style.borderBottomColor = otpData.otp[
+                              index
+                            ]
                               ? "#C9A96E"
-                              : "#b8a893";
-                            e.target.style.boxShadow = otp[index]
-                              ? "0 0 0 3px rgba(201,169,110,0.15)"
-                              : "0 1px 3px rgba(0,0,0,0.06)";
+                              : "#d0c5b5";
                           }}
                         />
                       ))}
@@ -595,11 +575,14 @@ const Register = () => {
 
                   <button
                     type="submit"
-                    disabled={loading || otp.length !== 6}
+                    disabled={loading || otpData.otp.length !== 6}
                     className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 disabled:opacity-50"
-                    style={{ backgroundColor: "#1b1c1a", color: "#fbf9f6" }}
+                    style={{
+                      backgroundColor: "#1b1c1a",
+                      color: "#fbf9f6",
+                    }}
                     onMouseEnter={(e) => {
-                      if (!loading && otp.length === 6) {
+                      if (!loading && otpData.otp.length === 6) {
                         e.currentTarget.style.backgroundColor = "#C9A96E";
                         e.currentTarget.style.color = "#1b1c1a";
                       }
@@ -630,7 +613,7 @@ const Register = () => {
                     </p>
                     <button
                       type="button"
-                      onClick={handleResend}
+                      onClick={handleResendOTP}
                       disabled={loading}
                       className="w-full py-3 text-[11px] uppercase tracking-[0.2em] font-medium transition-all duration-300 disabled:opacity-50"
                       style={{
@@ -683,4 +666,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterOTP;

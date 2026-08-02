@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useCart } from "../hook/useCart";
 import { Link, useNavigate } from "react-router";
-import { useRazorpay} from "react-razorpay";
+import { useRazorpay } from "react-razorpay";
+import ConfirmModal from "../../Shared/Components/ConfirmModel"; 
 
 /* ─── Inline styles & tokens matching the "Avenue Montaigne" design system ─── */
 const tokens = {
@@ -23,7 +24,14 @@ const tokens = {
 
 const Cart = () => {
   const cart = useSelector((state) => state.cart);
-  const { handleGetCart, handleRemoveItem, handleIncrementCartItem, handleDecrementCartItem, handleCreateCartOrder, handleVerifyCartOrder } = useCart();
+  const {
+    handleGetCart,
+    handleRemoveItem,
+    handleIncrementCartItem,
+    handleDecrementCartItem,
+    handleCreateCartOrder,
+    handleVerifyCartOrder,
+  } = useCart();
   const navigate = useNavigate();
   const { error, isLoading, Razorpay } = useRazorpay();
   const user = useSelector((state) => state.auth.user);
@@ -31,7 +39,9 @@ const Cart = () => {
   /* Local quantity state — key: cartItem._id, value: number */
   const [quantities, setQuantities] = useState({});
   /* Toast state */
-  const [toast, setToast] = useState({ open: false, message: '' });
+  const [toast, setToast] = useState({ open: false, message: "" });
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   useEffect(() => {
     handleGetCart();
@@ -52,8 +62,11 @@ const Cart = () => {
     const variantDetail = getVariantDetails(product, variantId);
     const stock = variantDetail?.stock;
     if (delta > 0 && stock !== undefined && newQty > stock) {
-      setToast({ open: true, message: `Only ${stock} items available in stock.` })
-      setTimeout(() => setToast({ open: false, message: '' }), 3000);
+      setToast({
+        open: true,
+        message: `Only ${stock} items available in stock.`,
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
       return;
     }
 
@@ -77,8 +90,11 @@ const Cart = () => {
         ...prev,
         [id]: currentQty,
       }));
-      setToast({ open: true, message: err?.response?.data?.message || "Failed to update quantity." });
-      setTimeout(() => setToast({ open: false, message: '' }), 3000);
+      setToast({
+        open: true,
+        message: err?.response?.data?.message || "Failed to update quantity.",
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
     }
   };
 
@@ -104,7 +120,7 @@ const Cart = () => {
 
   async function handleCheckout() {
     const order = await handleCreateCartOrder();
-    
+
     const options = {
       key: "YOUR_RAZORPAY_KEY",
       amount: order.amount, // Amount in paise
@@ -112,8 +128,8 @@ const Cart = () => {
       name: "Snitch",
       description: "Test Transaction",
       order_id: order.id, // Generate order_id on server
-      handler:async (response) => {
-       const isValid = await handleVerifyCartOrder(response);
+      handler: async (response) => {
+        const isValid = await handleVerifyCartOrder(response);
         if (isValid) {
           navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
         }
@@ -132,6 +148,31 @@ const Cart = () => {
     razorpayInstance.open();
   }
 
+  const confirmRemoveItem = async () => {
+    if (!removeTarget) return;
+    setIsRemoving(true);
+    try {
+      const { product, variant: variantId } = removeTarget;
+      const pid = product?._id || product;
+      const vid = variantId?._id || variantId;
+      await handleRemoveItem({ productId: pid, variantId: vid });
+      setToast({
+        open: true,
+        message: `Successfully removed ${product?.title || "item"} from your selection.`,
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+      setRemoveTarget(null);
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err?.response?.data?.message || "Failed to remove item.",
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   /* ─── Empty state ─── */
   if (!cart?.items?.length) {
     return (
@@ -147,8 +188,6 @@ const Cart = () => {
             fontFamily: "'Inter', sans-serif",
           }}
         >
-
-
           <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-24 px-8">
             <p
               className="text-5xl md:text-6xl font-light leading-tight"
@@ -227,7 +266,8 @@ const Cart = () => {
                   className="text-[10px] uppercase tracking-[0.24em] font-medium"
                   style={{ color: tokens.muted }}
                 >
-                  {cart?.items?.length} {cart?.items?.length === 1 ? "piece" : "pieces"}
+                  {cart?.items?.length}{" "}
+                  {cart?.items?.length === 1 ? "piece" : "pieces"}
                 </p>
               </div>
 
@@ -329,17 +369,38 @@ const Cart = () => {
                             </p>
                           )}
 
-                          {
-                            displayPrice?.amount !== undefined && variantPrice?.amount !== undefined && displayPrice.amount !== variantPrice.amount && (
-                            <>
-                              {
-                                displayPrice.amount > variantPrice.amount
-                                    ? <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-green-600 font-bold">You will get this at {formatCurrency(variantPrice.amount, variantPrice.currency)} save {Math.abs(variantPrice.amount - displayPrice.amount)}.  </p>
-                                    : <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-red-600 font-bold">Warning this product will cost you {formatCurrency(Math.abs(variantPrice.amount - displayPrice.amount), displayPrice.currency)} more.  </p>
-                              }
-                            </>
-                            )
-                          }
+                          {displayPrice?.amount !== undefined &&
+                            variantPrice?.amount !== undefined &&
+                            displayPrice.amount !== variantPrice.amount && (
+                              <>
+                                {displayPrice.amount > variantPrice.amount ? (
+                                  <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-green-600 font-bold">
+                                    You will get this at{" "}
+                                    {formatCurrency(
+                                      variantPrice.amount,
+                                      variantPrice.currency,
+                                    )}{" "}
+                                    save{" "}
+                                    {Math.abs(
+                                      variantPrice.amount - displayPrice.amount,
+                                    )}
+                                    .{" "}
+                                  </p>
+                                ) : (
+                                  <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-red-600 font-bold">
+                                    Warning this product will cost you{" "}
+                                    {formatCurrency(
+                                      Math.abs(
+                                        variantPrice.amount -
+                                          displayPrice.amount,
+                                      ),
+                                      displayPrice.currency,
+                                    )}{" "}
+                                    more.{" "}
+                                  </p>
+                                )}
+                              </>
+                            )}
                         </div>
 
                         {/* Bottom Row: Quantity + Remove */}
@@ -386,17 +447,9 @@ const Cart = () => {
                           {/* Remove */}
                           <button
                             id={`remove-${_id}`}
-                            onClick={async () => {
-                              const pid = product?._id || product;
-                              const vid = variantId?._id || variantId;
-                              await handleRemoveItem({ productId: pid, variantId: vid });
-                              setToast({ open: true, message: `Successfully removed ${product?.title || 'item'} from your selection.` });
-                              setTimeout(() => {
-                                setToast({ open: false, message: '' });
-                              }, 3000);
-                            }}
+                            onClick={() => setRemoveTarget(item)}
                             className="text-[10px] uppercase tracking-[0.22em] font-medium transition-all duration-200 hover:underline cursor-pointer"
-                            style={{ color: '#c0392b' }}
+                            style={{ color: "#c0392b" }}
                           >
                             Remove
                           </button>
@@ -500,7 +553,10 @@ const Cart = () => {
                     </span>
                     <span
                       className="text-[10px] uppercase tracking-[0.1em]"
-                      style={{ color: cart.totalPrice >= 15000 ? "#5a7a5a" : tokens.muted }}
+                      style={{
+                        color:
+                          cart.totalPrice >= 15000 ? "#5a7a5a" : tokens.muted,
+                      }}
                     >
                       {cart.totalPrice >= 15000
                         ? "Complimentary"
@@ -553,7 +609,7 @@ const Cart = () => {
                   style={{
                     backgroundColor: tokens.onSurface,
                     color: tokens.surface,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = tokens.primary;
@@ -605,26 +661,36 @@ const Cart = () => {
       {toast.open && (
         <div
           style={{
-            position: 'fixed',
-            bottom: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            position: "fixed",
+            bottom: "40px",
+            left: "50%",
+            transform: "translateX(-50%)",
             zIndex: 9999,
             backgroundColor: tokens.onSurface,
             color: tokens.surface,
-            padding: '16px 24px',
-            boxShadow: '0 8px 32px rgba(27,28,26,0.12)',
+            padding: "16px 24px",
+            boxShadow: "0 8px 32px rgba(27,28,26,0.12)",
             fontFamily: "'Inter', sans-serif",
-            fontSize: '12px',
-            letterSpacing: '0.04em',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            animation: 'fadeInUp 0.3s ease-out forwards',
+            fontSize: "12px",
+            letterSpacing: "0.04em",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            animation: "fadeInUp 0.3s ease-out forwards",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: tokens.primary }}>
-            <path d="M20 6L9 17l-5-5"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ color: tokens.primary }}
+          >
+            <path d="M20 6L9 17l-5-5" />
           </svg>
           {toast.message}
         </div>
@@ -637,6 +703,16 @@ const Cart = () => {
           }
         `}
       </style>
+
+      <ConfirmModal
+        isOpen={!!removeTarget}
+        title="Remove this item?"
+        message={`"${removeTarget?.product?.title || "This item"}" will be removed from your cart.`}
+        confirmText="Remove"
+        onConfirm={confirmRemoveItem}
+        onCancel={() => setRemoveTarget(null)}
+        isProcessing={isRemoving}
+      />
     </>
   );
 };

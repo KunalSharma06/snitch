@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useProduct } from "../hook/useProduct";
 import { useParams } from "react-router";
+import ConfirmModal from "../../Shared/Components/ConfirmModel.jsx";
 
 // Helper icons
 const PlusIcon = () => (
@@ -59,7 +60,9 @@ const SellerProductDetails = () => {
   });
 
   const { productId } = useParams();
-  const { handleGetProductById, handleAddProductVariant, handleUpdateVariantStock, handleUpdateProduct, handleUpdateVariant } = useProduct();
+  const { handleGetProductById, handleAddProductVariant, handleUpdateVariantStock, handleUpdateProduct, handleUpdateVariant, handleDeleteProduct, handleDeleteVariant } = useProduct();
+  const [deleteVariantTarget, setDeleteVariantTarget] = useState(null);
+  const [isDeletingVariant, setIsDeletingVariant] = useState(false);
 
   // Per-variant edit state
   const [editingVariantId, setEditingVariantId] = useState(null);
@@ -179,6 +182,25 @@ const SellerProductDetails = () => {
     });
   };
 
+  const confirmDeleteVariant = async () => {
+    if (!deleteVariantTarget) return;
+    setIsDeletingVariant(true);
+    try {
+      const data = await handleDeleteVariant(
+        productId,
+        deleteVariantTarget._id,
+      );
+      if (data?.product?.variants) {
+        setLocalVariants(data.product.variants);
+      }
+      setDeleteVariantTarget(null);
+    } catch (err) {
+      console.error("Failed to delete variant", err);
+    } finally {
+      setIsDeletingVariant(false);
+    }
+  };
+
   const handleAddAttribute = () => {
     setAttributeInputs((prev) => [...prev, { key: "", value: "" }]);
   };
@@ -188,11 +210,11 @@ const SellerProductDetails = () => {
     updatedInputs[index][field] = value;
     setAttributeInputs(updatedInputs);
 
-    // Synchronize to object format
     const newAttrsObj = {};
     updatedInputs.forEach((attr) => {
-      if (attr.key.trim() !== "") {
-        newAttrsObj[attr.key.trim()] = attr.value;
+      const normalizedKey = attr.key.trim().toLowerCase(); // 🔽 normalize here
+      if (normalizedKey !== "") {
+        newAttrsObj[normalizedKey] = attr.value.trim();
       }
     });
     setNewVariant((prev) => ({ ...prev, attributes: newAttrsObj }));
@@ -202,11 +224,11 @@ const SellerProductDetails = () => {
     const updatedInputs = attributeInputs.filter((_, i) => i !== index);
     setAttributeInputs(updatedInputs);
 
-    // Synchronize to object format
     const newAttrsObj = {};
     updatedInputs.forEach((attr) => {
-      if (attr.key.trim() !== "") {
-        newAttrsObj[attr.key.trim()] = attr.value;
+      const normalizedKey = attr.key.trim().toLowerCase(); // 🔽 normalize here too
+      if (normalizedKey !== "") {
+        newAttrsObj[normalizedKey] = attr.value.trim();
       }
     });
     setNewVariant((prev) => ({ ...prev, attributes: newAttrsObj }));
@@ -264,8 +286,6 @@ const SellerProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-sans pb-24">
-
-
       <main className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-8">
         {/* Base Product Info */}
         <section className="flex flex-col md:flex-row gap-8 mb-16">
@@ -303,39 +323,61 @@ const SellerProductDetails = () => {
             {isEditing ? (
               <div className="space-y-5">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">Title</label>
+                  <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
+                    Title
+                  </label>
                   <input
                     type="text"
                     value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, title: e.target.value })
+                    }
                     className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-2xl font-serif focus:outline-none focus:border-[#745a27]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">Description</label>
+                  <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
+                    Description
+                  </label>
                   <textarea
                     value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, description: e.target.value })
+                    }
                     rows={4}
                     className="w-full bg-transparent border border-[#d0c5b5] py-2 px-3 text-base text-[#6e6258] focus:outline-none focus:border-[#745a27] resize-none"
                   />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">Price</label>
+                    <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
+                      Price
+                    </label>
                     <input
                       type="number"
                       value={editForm.priceAmount}
-                      onChange={(e) => setEditForm({ ...editForm, priceAmount: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          priceAmount: e.target.value,
+                        })
+                      }
                       className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xl focus:outline-none focus:border-[#745a27]"
                     />
                   </div>
                   <div className="w-24">
-                    <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">Currency</label>
+                    <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
+                      Currency
+                    </label>
                     <input
                       type="text"
                       value={editForm.priceCurrency}
-                      onChange={(e) => setEditForm({ ...editForm, priceCurrency: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          priceCurrency: e.target.value,
+                        })
+                      }
                       className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xl focus:outline-none focus:border-[#745a27]"
                     />
                   </div>
@@ -349,7 +391,9 @@ const SellerProductDetails = () => {
                     {saving ? "Saving..." : "Save"}
                   </button>
                   <button
-                    onClick={() => { setIsEditing(false); }}
+                    onClick={() => {
+                      setIsEditing(false);
+                    }}
                     className="border border-[#d0c5b5] text-[#6e6258] px-6 py-2 text-xs uppercase tracking-wider hover:border-[#745a27] transition-colors cursor-pointer"
                   >
                     Cancel
@@ -583,7 +627,7 @@ const SellerProductDetails = () => {
                   stock: variant.stock ?? 0,
                   // Convert attributes Map to plain object for editing
                   attributes: Object.fromEntries(
-                    Object.entries(variant.attributes || {})
+                    Object.entries(variant.attributes || {}),
                   ),
                 };
 
@@ -595,7 +639,7 @@ const SellerProductDetails = () => {
                       priceCurrency: variant.price?.currency ?? "INR",
                       stock: variant.stock ?? 0,
                       attributes: Object.fromEntries(
-                        Object.entries(variant.attributes || {})
+                        Object.entries(variant.attributes || {}),
                       ),
                     },
                   }));
@@ -613,13 +657,20 @@ const SellerProductDetails = () => {
                     ...prev,
                     [vid]: {
                       ...prev[vid],
-                      attributes: { ...prev[vid].attributes, [attrKey]: attrVal },
+                      attributes: {
+                        ...prev[vid].attributes,
+                        [attrKey]: attrVal,
+                      },
                     },
                   }));
 
                 const saveVariant = async () => {
                   try {
-                    const data = await handleUpdateVariant(productId, vid, form);
+                    const data = await handleUpdateVariant(
+                      productId,
+                      vid,
+                      form,
+                    );
                     if (data?.product?.variants) {
                       setLocalVariants(data.product.variants);
                     }
@@ -654,8 +705,9 @@ const SellerProductDetails = () => {
                       {!isEditingThisVariant && (
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap gap-2 mb-2">
-                            {Object.entries(variant.attributes || {}).map(
-                              ([key, val]) => (
+                            {Object.entries(variant.attributes || {})
+                              .sort(([a], [b]) => a.localeCompare(b))
+                              .map(([key, val]) => (
                                 <span
                                   key={key}
                                   className="bg-[#f5f3f0] px-2 py-1 text-xs uppercase tracking-wider text-[#4d463a]"
@@ -663,8 +715,7 @@ const SellerProductDetails = () => {
                                   <span className="text-[#a8a094]">{key}:</span>{" "}
                                   {val}
                                 </span>
-                              ),
-                            )}
+                              ))}
                           </div>
                           <div className="text-sm font-light">
                             {variant.price?.amount
@@ -680,47 +731,70 @@ const SellerProductDetails = () => {
                       <div className="px-6 pb-4 space-y-3">
                         {/* Attributes */}
                         <div>
-                          <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">Attributes</label>
-                          {Object.entries(form.attributes).map(([k, v]) => (
-                            <div key={k} className="flex gap-2 mb-2 items-center">
-                              <span className="text-xs text-[#a8a094] w-16 shrink-0 uppercase tracking-wider">{k}</span>
-                              <input
-                                type="text"
-                                value={v}
-                                onChange={(e) => updateAttr(k, e.target.value)}
-                                className="flex-1 bg-transparent border-b border-[#d0c5b5] py-1 text-sm focus:outline-none focus:border-[#745a27]"
-                              />
-                            </div>
-                          ))}
+                          <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">
+                            Attributes
+                          </label>
+                          {Object.entries(form.attributes)
+                            .sort(([a], [b]) => a.localeCompare(b))
+                            .map(([k, v]) => (
+                              <div
+                                key={k}
+                                className="flex gap-2 mb-2 items-center"
+                              >
+                                <span className="text-xs text-[#a8a094] w-16 shrink-0 uppercase tracking-wider">
+                                  {k}
+                                </span>
+                                <input
+                                  type="text"
+                                  value={v}
+                                  onChange={(e) =>
+                                    updateAttr(k, e.target.value)
+                                  }
+                                  className="flex-1 bg-transparent border-b border-[#d0c5b5] py-1 text-sm focus:outline-none focus:border-[#745a27]"
+                                />
+                              </div>
+                            ))}
                         </div>
                         {/* Price + Currency */}
                         <div className="flex gap-3">
                           <div className="flex-1">
-                            <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">Price</label>
+                            <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">
+                              Price
+                            </label>
                             <input
                               type="number"
                               value={form.priceAmount}
-                              onChange={(e) => updateForm("priceAmount", e.target.value)}
+                              onChange={(e) =>
+                                updateForm("priceAmount", e.target.value)
+                              }
                               className="w-full bg-transparent border-b border-[#d0c5b5] py-1 text-sm focus:outline-none focus:border-[#745a27]"
                             />
                           </div>
                           <div className="w-20">
-                            <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">Currency</label>
+                            <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">
+                              Currency
+                            </label>
                             <input
                               type="text"
                               value={form.priceCurrency}
-                              onChange={(e) => updateForm("priceCurrency", e.target.value)}
+                              onChange={(e) =>
+                                updateForm("priceCurrency", e.target.value)
+                              }
                               className="w-full bg-transparent border-b border-[#d0c5b5] py-1 text-sm focus:outline-none focus:border-[#745a27]"
                             />
                           </div>
                         </div>
                         {/* Stock */}
                         <div>
-                          <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">Stock</label>
+                          <label className="block text-[9px] uppercase tracking-wider text-[#6e6258] mb-1">
+                            Stock
+                          </label>
                           <input
                             type="number"
                             value={form.stock}
-                            onChange={(e) => updateForm("stock", e.target.value)}
+                            onChange={(e) =>
+                              updateForm("stock", e.target.value)
+                            }
                             className="w-24 bg-transparent border-b border-[#d0c5b5] py-1 text-sm focus:outline-none focus:border-[#745a27]"
                           />
                         </div>
@@ -742,20 +816,31 @@ const SellerProductDetails = () => {
                       </div>
                     )}
 
-                    {/* Stock + Edit row */}
                     <div className="mt-auto border-t border-[#f5f3f0] bg-[#fbf9f6] flex items-center px-6 py-3 justify-between">
                       {!isEditingThisVariant ? (
                         <>
-                          <label className="text-sm text-[#6e6258] uppercase tracking-wider">Stock: {variant.stock ?? 0}</label>
-                          <button
-                            onClick={openEdit}
-                            className="text-[9px] uppercase tracking-[0.15em] text-[#745a27] hover:text-[#5a4312] transition-colors cursor-pointer"
-                          >
-                            Edit Variant
-                          </button>
+                          <label className="text-sm text-[#6e6258] uppercase tracking-wider">
+                            Stock: {variant.stock ?? 0}
+                          </label>
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={openEdit}
+                              className="text-[9px] uppercase tracking-[0.15em] text-[#745a27] hover:text-[#5a4312] transition-colors cursor-pointer"
+                            >
+                              Edit Variant
+                            </button>
+                            <button
+                              onClick={() => setDeleteVariantTarget(variant)}
+                              className="text-[9px] uppercase tracking-[0.15em] text-[#ba1a1a] hover:text-[#8f1414] transition-colors cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </>
                       ) : (
-                        <span className="text-[9px] uppercase tracking-[0.15em] text-[#a8a094]">Editing…</span>
+                        <span className="text-[9px] uppercase tracking-[0.15em] text-[#a8a094]">
+                          Editing…
+                        </span>
                       )}
                     </div>
                   </div>
@@ -765,6 +850,15 @@ const SellerProductDetails = () => {
           )}
         </section>
       </main>
+      <ConfirmModal
+        isOpen={!!deleteVariantTarget}
+        title="Remove this variant?"
+        message="This variant and its stock will be permanently removed. This cannot be undone."
+        confirmText="Remove"
+        onConfirm={confirmDeleteVariant}
+        onCancel={() => setDeleteVariantTarget(null)}
+        isProcessing={isDeletingVariant}
+      />
     </div>
   );
 };

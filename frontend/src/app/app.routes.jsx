@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import Register from "../features/auth/pages/Register";
+import RegisterOTP from "../features/auth/pages/RegisterOtp";
 import Login from "../features/auth/pages/Login";
 import CreateProduct from "../features/products/pages/CreateProduct";
 import Dashboard from "../features/products/pages/Dashboard";
@@ -61,7 +62,6 @@ export const routes = createBrowserRouter([
         children: [
           {
             path: "/seller/create-product",
-
             element: (
               <Protected role="seller">
                 <CreateProduct />

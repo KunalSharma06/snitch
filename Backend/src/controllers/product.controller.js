@@ -5,19 +5,21 @@ export async function createProduct(req, res) {
   const { title, description, priceAmount, priceCurrency } = req.body;
   const seller = req.user;
 
-  const images = await Promise.all(req.files.map(async (file) => {
-    return await uploadFile({
-      buffer: file.buffer,
-      fileName: file.originalname,
-    })
-  }))
+  const images = await Promise.all(
+    req.files.map(async (file) => {
+      return await uploadFile({
+        buffer: file.buffer,
+        fileName: file.originalname,
+      });
+    }),
+  );
 
   const product = await productModel.create({
     title,
     description,
     price: {
       amount: priceAmount,
-      currency: priceCurrency || "INR"
+      currency: priceCurrency || "INR",
     },
     images,
     seller: seller._id,
@@ -28,7 +30,6 @@ export async function createProduct(req, res) {
     success: true,
     product,
   });
-
 }
 
 export async function getSellerProducts(req, res) {
@@ -39,7 +40,6 @@ export async function getSellerProducts(req, res) {
     success: true,
     products,
   });
-
 }
 
 export async function getAllProducts(req, res) {
@@ -49,7 +49,6 @@ export async function getAllProducts(req, res) {
     success: true,
     products,
   });
-
 }
 
 export async function getProductDetail(req, res) {
@@ -68,14 +67,17 @@ export async function getProductDetail(req, res) {
     success: true,
     product,
   });
-
 }
 
 function getAttributeCombinations(attributes) {
   const entries = Object.entries(attributes).map(([key, val]) => {
-    const values = typeof val === "string"
-      ? val.split(",").map(v => v.trim()).filter(Boolean)
-      : [val];
+    const values =
+      typeof val === "string"
+        ? val
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean)
+        : [val];
     return { key, values };
   });
 
@@ -93,7 +95,6 @@ function getAttributeCombinations(attributes) {
 }
 
 export async function addProductVariant(req, res) {
-
   const productId = req.params.productId;
   const product = await productModel.findOne({
     _id: productId,
@@ -104,19 +105,23 @@ export async function addProductVariant(req, res) {
     return res.status(404).json({
       message: "Product not found",
       success: false,
-    })
+    });
   }
 
   const files = req.files;
   const images = [];
   if (files && files.length !== 0) {
-    (await Promise.all(files.map(async (file) => {
-      const image = await uploadFile({
-        buffer: file.buffer,
-        fileName: file.originalname,
-      })
-      return image
-    }))).map(image => images.push(image))
+    (
+      await Promise.all(
+        files.map(async (file) => {
+          const image = await uploadFile({
+            buffer: file.buffer,
+            fileName: file.originalname,
+          });
+          return image;
+        }),
+      )
+    ).map((image) => images.push(image));
   }
 
   const price = req.body.priceAmount;
@@ -130,7 +135,7 @@ export async function addProductVariant(req, res) {
       images,
       price: {
         amount: Number(price) || product.price.amount,
-        currency: req.body.priceCurrency || product.price.currency
+        currency: req.body.priceCurrency || product.price.currency,
       },
       stock: Number(stock) || 0,
       attributes: combo,
@@ -142,7 +147,7 @@ export async function addProductVariant(req, res) {
   return res.status(200).json({
     message: "Product variant added successfully",
     success: true,
-    product
+    product,
   });
 }
 
@@ -190,7 +195,9 @@ export async function updateProduct(req, res) {
   });
 
   if (!product) {
-    return res.status(404).json({ message: "Product not found", success: false });
+    return res
+      .status(404)
+      .json({ message: "Product not found", success: false });
   }
 
   if (title) product.title = title;
@@ -217,19 +224,24 @@ export async function updateVariant(req, res) {
   });
 
   if (!product) {
-    return res.status(404).json({ message: "Product not found", success: false });
+    return res
+      .status(404)
+      .json({ message: "Product not found", success: false });
   }
 
   const variant = product.variants.id(variantId);
   if (!variant) {
-    return res.status(404).json({ message: "Variant not found", success: false });
+    return res
+      .status(404)
+      .json({ message: "Variant not found", success: false });
   }
 
   if (stock !== undefined) variant.stock = Number(stock);
   if (priceAmount !== undefined) {
     variant.price = {
       amount: Number(priceAmount),
-      currency: priceCurrency || variant.price?.currency || product.price.currency,
+      currency:
+        priceCurrency || variant.price?.currency || product.price.currency,
     };
   }
   if (attributes) {
@@ -245,3 +257,63 @@ export async function updateVariant(req, res) {
     product,
   });
 }
+
+export const deleteProduct = async (req, res) => {
+  const { productId } = req.params;
+
+  try {
+    const product = await productModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.seller.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this product" });
+    }
+
+    await productModel.findByIdAndDelete(productId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Product removed successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error deleting product" });
+  }
+};
+
+export const deleteVariant = async (req, res) => {
+  const { productId, variantId } = req.params;
+
+  try {
+    const product = await productModel.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (product.seller.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to modify this product" });
+    }
+
+    product.variants = product.variants.filter(
+      (v) => v._id.toString() !== variantId,
+    );
+
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Variant removed successfully",
+      product,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error deleting variant" });
+  }
+};
