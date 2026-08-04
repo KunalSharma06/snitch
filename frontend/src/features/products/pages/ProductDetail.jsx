@@ -8,10 +8,11 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [similarProducts, setSimilarProducts] = useState([]);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const toastTimer = useRef(null);
   const navigate = useNavigate();
-  const { handleGetProductById } = useProduct();
+  const { handleGetProductById, handleGetSimilarProducts } = useProduct();
   const { handleAddItem } = useCart();
 
   function showToast(message) {
@@ -25,6 +26,9 @@ const ProductDetail = () => {
       const data = await handleGetProductById(productId);
       // Handle both cases depending on how API is structured
       setProduct(data?.product || data);
+
+      const simData = await handleGetSimilarProducts(productId);
+      setSimilarProducts(simData || []);
     } catch (error) {
       console.error("Failed to fetch product details", error);
     }
@@ -108,9 +112,27 @@ const ProductDetail = () => {
       });
     });
 
+    const CLOTHING_SIZE_ORDER = ['XXS','XS','S','M','L','XL','XXL','2XL','3XL','4XL','5XL'];
+
     const result = {};
     Object.entries(attrs).forEach(([key, set]) => {
-      result[key] = Array.from(set);
+      let values = Array.from(set);
+      if (key.toLowerCase() === 'size') {
+        values.sort((a, b) => {
+          const aUpper = a.toString().toUpperCase();
+          const bUpper = b.toString().toUpperCase();
+          const aIdx = CLOTHING_SIZE_ORDER.indexOf(aUpper);
+          const bIdx = CLOTHING_SIZE_ORDER.indexOf(bUpper);
+          // Both are clothing sizes — sort by known order
+          if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+          // One is clothing size, other is numeric — clothing sizes go last
+          if (aIdx !== -1) return 1;
+          if (bIdx !== -1) return -1;
+          // Both are numeric (waist sizes like 28, 30, 32) — sort numerically
+          return a.toString().localeCompare(b.toString(), undefined, { numeric: true, sensitivity: 'base' });
+        });
+      }
+      result[key] = values;
     });
     return result;
   }, [product]);
@@ -204,9 +226,9 @@ const ProductDetail = () => {
             <span>Back</span>
           </button>
 
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-start">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 xl:gap-24 items-start lg:justify-between">
             {/* ── LEFT: Image Gallery ── */}
-            <div className="w-full lg:w-[55%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
+            <div className="w-full lg:w-[45%] xl:w-[50%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
               {/* Thumbnails (Vertical on Desktop, Horizontal on Mobile) */}
               {displayImages.length > 1 && (
                 <div className="flex flex-row md:flex-col gap-4 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide w-full md:w-20 lg:w-24 flex-shrink-0 md:max-h-[calc(100vh-200px)]">
@@ -320,9 +342,9 @@ const ProductDetail = () => {
             </div>
 
             {/* ── RIGHT: Product Details ── */}
-            <div className="w-full lg:w-[30%] lg:sticky lg:top-24 flex flex-col pt-4">
+            <div className="w-full lg:w-[45%] xl:w-[40%] lg:sticky lg:top-24 flex flex-col pt-4">
               <h1
-                className="text-4xl md:text-5xl lg:text-6xl font-light leading-[1.05] mb-6"
+                className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1] mb-6"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   color: "#1b1c1a",
@@ -403,12 +425,41 @@ const ProductDetail = () => {
                 >
                   The Details
                 </h3>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "#7A6E63" }}
-                >
-                  {product.description}
-                </p>
+                
+                {product.description && product.description.includes('-') && product.description.includes('\n') ? (
+                  <div className="flex flex-col gap-2 text-sm">
+                    {product.description.split('\n').map((line, idx) => {
+                      if (!line.trim()) return null;
+                      
+                      // Support both '-' and ':' as separators
+                      const separator = line.includes(' - ') ? ' - ' : (line.includes('-') ? '-' : ':');
+                      const parts = line.split(separator);
+                      
+                      if (parts.length >= 2) {
+                        const key = parts[0].trim();
+                        const value = parts.slice(1).join(separator).trim();
+                        return (
+                          <div key={idx} className="flex gap-4 border-b pb-2 last:border-0" style={{ borderColor: "#e4e2df" }}>
+                            <span className="font-medium w-1/3 shrink-0" style={{ color: "#1b1c1a" }}>{key}</span>
+                            <span className="w-2/3" style={{ color: "#7A6E63" }}>{value}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <p key={idx} className="leading-relaxed" style={{ color: "#7A6E63" }}>
+                          {line}
+                        </p>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p
+                    className="text-sm leading-relaxed whitespace-pre-line"
+                    style={{ color: "#7A6E63" }}
+                  >
+                    {product.description}
+                  </p>
+                )}
               </div>
 
               {/* Actions */}
@@ -492,6 +543,71 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
+
+          {/* ── Similar Products ── */}
+          {similarProducts && similarProducts.length > 0 && (
+            <div className="mt-12 border-t pt-10" style={{ borderColor: "#e4e2df" }}>
+              <h2
+                className="text-2xl lg:text-3xl font-light mb-10 text-center"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  color: "#1b1c1a",
+                }}
+              >
+                Curated For You
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+                {similarProducts.map((simProd) => {
+                  const imageUrl =
+                    simProd.images && simProd.images.length > 0
+                      ? simProd.images[0].url
+                      : "/snitch_editorial_warm.png";
+
+                  return (
+                    <div
+                      onClick={() => {
+                        window.scrollTo(0,0);
+                        navigate(`/product/${simProd._id}`);
+                      }}
+                      key={simProd._id}
+                      className="group cursor-pointer flex flex-col"
+                    >
+                      <div
+                        className="aspect-[4/5] overflow-hidden mb-4"
+                        style={{ backgroundColor: "#f5f3f0" }}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={simProd.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <h3
+                          className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] truncate"
+                          style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            color: "#1b1c1a",
+                          }}
+                        >
+                          {simProd.title}
+                        </h3>
+                        <div className="mt-1">
+                          <span
+                            className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                            style={{ color: "#1b1c1a" }}
+                          >
+                            {simProd.price?.currency}{" "}
+                            {simProd.price?.amount?.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -7,6 +7,12 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    productType: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true
+    },
     description: {
       type: String,
       required: true,
@@ -54,6 +60,8 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+productSchema.index({ productType: 1 });
 
 const productModel = mongoose.model('product', productSchema);
 export default productModel;

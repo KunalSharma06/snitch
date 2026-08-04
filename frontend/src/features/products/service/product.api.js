@@ -25,6 +25,11 @@ export async function getProductDetail(productId) {
   return res.data;
 }
 
+export async function getSimilarProducts(productId) {
+  const res = await productApiInstance.get(`/${productId}/similar`);
+  return res.data;
+}
+
 export async function addProductVariant(productId, newProductVariant) {
   const formData = new FormData;
   newProductVariant.images.forEach((image) => {
@@ -43,12 +48,13 @@ export async function updateVariantStock(productId, variantId, stock) {
   return res.data;
 }
 
-export async function updateProduct(productId, { title, description, priceAmount, priceCurrency }) {
+export async function updateProduct(productId, { title, description, priceAmount, priceCurrency, productType }) {
   const res = await productApiInstance.patch(`/${productId}`, {
     title,
     description,
     priceAmount,
     priceCurrency,
+    productType,
   });
   return res.data;
 }

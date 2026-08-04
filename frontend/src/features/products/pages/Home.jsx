@@ -101,13 +101,6 @@ const Home = () => {
                         {product.title}
                       </h3>
 
-                      <p
-                        className="text-[12px] line-clamp-2 leading-relaxed"
-                        style={{ color: "#7A6E63" }}
-                      >
-                        {product.description}
-                      </p>
-
                       <div className="mt-2">
                         <span
                           className="text-[10px] uppercase tracking-[0.2em] font-medium"

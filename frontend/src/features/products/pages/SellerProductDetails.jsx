@@ -43,7 +43,7 @@ const SellerProductDetails = () => {
   const [isAddingVariant, setIsAddingVariant] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ title: "", description: "", priceAmount: "", priceCurrency: "INR" });
+  const [editForm, setEditForm] = useState({ title: "", productType: "", description: "", priceAmount: "", priceCurrency: "INR" });
   const [saving, setSaving] = useState(false);
 
   // UI state for inputs to maintain focus
@@ -81,6 +81,7 @@ const SellerProductDetails = () => {
       // Populate edit form
       setEditForm({
         title: prod?.title || "",
+        productType: prod?.productType || "",
         description: prod?.description || "",
         priceAmount: prod?.price?.amount || "",
         priceCurrency: prod?.price?.currency || "INR",
@@ -337,6 +338,19 @@ const SellerProductDetails = () => {
                 </div>
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
+                    Product Type
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.productType}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, productType: e.target.value })
+                    }
+                    className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-lg font-serif focus:outline-none focus:border-[#745a27] uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-[#6e6258] mb-1">
                     Description
                   </label>
                   <textarea
@@ -402,9 +416,12 @@ const SellerProductDetails = () => {
               </div>
             ) : (
               <>
-                <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-4 uppercase">
+                <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-2 uppercase">
                   {product.title}
                 </h2>
+                <div className="text-[#c9a96e] text-xs font-semibold tracking-widest uppercase mb-4">
+                  {product.productType}
+                </div>
                 <p className="text-[#6e6258] text-lg mb-6 leading-relaxed max-w-md">
                   {product.description}
                 </p>

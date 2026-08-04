@@ -1,8 +1,9 @@
 import productModel from "../models/product.model.js";
 import { uploadFile } from "../services/storage.service.js";
+import mongoose from "mongoose";
 
 export async function createProduct(req, res) {
-  const { title, description, priceAmount, priceCurrency } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType } = req.body;
   const seller = req.user;
 
   const images = await Promise.all(
@@ -16,6 +17,7 @@ export async function createProduct(req, res) {
 
   const product = await productModel.create({
     title,
+    productType,
     description,
     price: {
       amount: priceAmount,
@@ -67,6 +69,60 @@ export async function getProductDetail(req, res) {
     success: true,
     product,
   });
+}
+
+export async function getSimilarProducts(req, res) {
+  try {
+    const { id } = req.params;
+    const currentProduct = await productModel.findById(id);
+
+    if (!currentProduct) {
+      return res.status(404).json({ message: "Product not found", success: false });
+    }
+
+    const { productType } = currentProduct;
+
+    // We can only match on productType if it exists on the document (backwards compatibility or not all products have it)
+    const matchQuery = { _id: { $ne: new mongoose.Types.ObjectId(id) } };
+    if (productType) {
+      matchQuery.productType = productType;
+    }
+
+    const similarProducts = await productModel.aggregate([
+      { $match: matchQuery },
+      { $sample: { size: 4 } }
+    ]);
+
+    let finalProducts = similarProducts;
+
+    if (similarProducts.length < 4) {
+      const remainingSize = 4 - similarProducts.length;
+      const similarProductIds = similarProducts.map(p => p._id);
+      
+      const randomProducts = await productModel.aggregate([
+        { 
+          $match: { 
+            _id: { 
+              $ne: new mongoose.Types.ObjectId(id), 
+              $nin: similarProductIds 
+            } 
+          } 
+        },
+        { $sample: { size: remainingSize } }
+      ]);
+      
+      finalProducts = [...similarProducts, ...randomProducts];
+    }
+
+    return res.status(200).json({
+      message: "Similar products fetched successfully",
+      success: true,
+      products: finalProducts,
+    });
+  } catch (error) {
+    console.error("Error fetching similar products:", error);
+    return res.status(500).json({ message: "Error fetching similar products", success: false });
+  }
 }
 
 function getAttributeCombinations(attributes) {
@@ -187,7 +243,7 @@ export async function updateVariantStock(req, res) {
 
 export async function updateProduct(req, res) {
   const { productId } = req.params;
-  const { title, description, priceAmount, priceCurrency } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType } = req.body;
 
   const product = await productModel.findOne({
     _id: productId,
@@ -201,6 +257,7 @@ export async function updateProduct(req, res) {
   }
 
   if (title) product.title = title;
+  if (productType) product.productType = productType;
   if (description) product.description = description;
   if (priceAmount) product.price.amount = Number(priceAmount);
   if (priceCurrency) product.price.currency = priceCurrency;

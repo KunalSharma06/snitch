@@ -14,6 +14,7 @@ function validateRequest(req, res, next) {
 
 export const createProductValidator = [
   body("title").notEmpty().withMessage("Title is required"),
+  body("productType").notEmpty().withMessage("Product Type is required"),
   body("description").notEmpty().withMessage("Description is required"),
   body("priceAmount").notEmpty().withMessage("Price amount must be number"),
   body("priceCurrency").notEmpty().withMessage("Price currency is required"),

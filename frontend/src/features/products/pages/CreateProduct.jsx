@@ -11,6 +11,7 @@ const CreateProduct = () => {
 
   const [formData, setFormData] = useState({
     title: "",
+    productType: "",
     description: "",
     priceAmount: "",
     priceCurrency: "INR",
@@ -74,6 +75,7 @@ const CreateProduct = () => {
     try {
       const data = new FormData();
       data.append("title", formData.title);
+      data.append("productType", formData.productType);
       data.append("description", formData.description);
       data.append("priceAmount", formData.priceAmount);
       data.append("priceCurrency", formData.priceCurrency);
@@ -124,6 +126,26 @@ const CreateProduct = () => {
                   required
                   placeholder="e.g. Oversized Linen Shirt"
                   className="bg-transparent text-[#1b1c1a] border-b border-[#d0c5b5] focus:border-[#C9A96E] outline-none px-3 py-3 text-base transition-colors duration-300 placeholder:text-[#d0c5b5] font-[Inter,sans-serif]"
+                />
+              </div>
+
+              {/* Product Type */}
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="productType"
+                  className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#7A6E63] font-[Inter,sans-serif]"
+                >
+                  Product Type
+                </label>
+                <input
+                  id="productType"
+                  type="text"
+                  name="productType"
+                  value={formData.productType}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. SHIRT, JEANS, HOODIE"
+                  className="bg-transparent text-[#1b1c1a] border-b border-[#d0c5b5] focus:border-[#C9A96E] outline-none px-3 py-3 text-base transition-colors duration-300 placeholder:text-[#d0c5b5] font-[Inter,sans-serif] uppercase"
                 />
               </div>
 
