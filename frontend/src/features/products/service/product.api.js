@@ -30,6 +30,11 @@ export async function getSimilarProducts(productId) {
   return res.data;
 }
 
+export async function getFeaturedProducts() {
+  const res = await productApiInstance.get("/featured");
+  return res.data;
+}
+
 export async function addProductVariant(productId, newProductVariant) {
   const formData = new FormData;
   newProductVariant.images.forEach((image) => {

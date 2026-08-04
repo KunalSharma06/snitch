@@ -105,7 +105,16 @@ const Dashboard = () => {
                       />
                     </div>
 
+                    
                     <div className="flex flex-col gap-2">
+                      {product.brand && product.brand !== "Unbranded" && (
+                        <span
+                          className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                          style={{ color: "#C9A96E" }}
+                        >
+                          {product.brand}
+                        </span>
+                      )}
                       <div className="flex items-start justify-between gap-4">
                         <h3
                           onClick={() =>

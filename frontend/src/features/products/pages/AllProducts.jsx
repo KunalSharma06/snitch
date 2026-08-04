@@ -20,20 +20,25 @@ const AllProducts = () => {
     ? ["ALL", ...new Set(products.map((p) => p.productType).filter(Boolean))]
     : ["ALL"];
 
-  const searchSuggestions = (products || [])
-    .filter((p) => 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (p.productType && p.productType.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-    .slice(0, 5);
+   const searchSuggestions = (products || [])
+     .filter(
+       (p) =>
+         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         (p.productType &&
+           p.productType.toLowerCase().includes(searchQuery.toLowerCase())) ||
+         (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase())),
+     )
+     .slice(0, 5);
 
-  const filtered = products?.filter((p) => {
-    const matchesFilter = filter === "ALL" || p.productType === filter;
-    const matchesSearch = 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (p.productType && p.productType.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
-  });
+   const filtered = products?.filter((p) => {
+     const matchesFilter = filter === "ALL" || p.productType === filter;
+     const matchesSearch =
+       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       (p.productType &&
+         p.productType.toLowerCase().includes(searchQuery.toLowerCase())) ||
+       (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase()));
+     return matchesFilter && matchesSearch;
+   });
 
   return (
     <>
@@ -117,8 +122,8 @@ const AllProducts = () => {
                       className="px-5 py-3 hover:bg-[#f5f3f0] cursor-pointer flex items-center justify-between transition-colors border-b border-[#e4e2df]/50 last:border-0"
                     >
                       <span className="text-sm line-clamp-1" style={{ color: "#1b1c1a" }}>{prod.title}</span>
-                      <span className="text-[9px] uppercase tracking-[0.1em] shrink-0 ml-4" style={{ color: "#C9A96E" }}>
-                        {prod.productType}
+                       <span className="text-[9px] uppercase tracking-[0.1em] shrink-0 ml-4" style={{ color: "#C9A96E" }}>
+                        {prod.brand && prod.brand !== "Unbranded" ? prod.brand : prod.productType}
                       </span>
                     </div>
                   ))
@@ -187,16 +192,24 @@ const AllProducts = () => {
                         alt={product.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                      
+
                       {/* Subtle Overlay on Hover */}
-                      <div 
-                        className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+                      <div
+                        className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
                         style={{ backgroundColor: "rgba(27,28,26,0.03)" }}
                       />
                     </div>
 
                     {/* Product Details */}
                     <div className="flex flex-col items-center text-center px-4">
+                      {product.brand && product.brand !== "Unbranded" && (
+                        <span
+                          className="text-[9px] uppercase tracking-[0.2em] font-medium mb-1"
+                          style={{ color: "#C9A96E" }}
+                        >
+                          {product.brand}
+                        </span>
+                      )}
                       <h3
                         className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] line-clamp-1"
                         style={{

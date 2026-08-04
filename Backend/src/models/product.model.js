@@ -11,7 +11,13 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       uppercase: true,
-      trim: true
+      trim: true,
+    },
+    brand: {
+      type: String,
+      required: false,
+      trim: true,
+      default: "Unbranded",
     },
     description: {
       type: String,
@@ -62,6 +68,7 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ productType: 1 });
+productSchema.index({ brand: 1 });
 
 const productModel = mongoose.model('product', productSchema);
 export default productModel;

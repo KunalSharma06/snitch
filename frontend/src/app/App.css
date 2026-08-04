@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+@keyframes brandMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.brand-marquee-track {
+  animation: brandMarquee 20s linear infinite;
+}
+
+.brand-marquee-track:hover {
+  animation-play-state: paused;
+}

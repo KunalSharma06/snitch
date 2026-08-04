@@ -3,7 +3,7 @@ import { uploadFile } from "../services/storage.service.js";
 import mongoose from "mongoose";
 
 export async function createProduct(req, res) {
-  const { title, description, priceAmount, priceCurrency, productType } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType, brand } = req.body;
   const seller = req.user;
 
   const images = await Promise.all(
@@ -18,6 +18,7 @@ export async function createProduct(req, res) {
   const product = await productModel.create({
     title,
     productType,
+    brand,
     description,
     price: {
       amount: priceAmount,
@@ -51,6 +52,23 @@ export async function getAllProducts(req, res) {
     success: true,
     products,
   });
+}
+
+export async function getFeaturedProducts(req, res) {
+  try {
+    const products = await productModel.aggregate([{ $sample: { size: 8 } }]);
+
+    return res.status(200).json({
+      message: "Featured products fetched successfully",
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.error("Error fetching featured products:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching featured products", success: false });
+  }
 }
 
 export async function getProductDetail(req, res) {
@@ -243,7 +261,7 @@ export async function updateVariantStock(req, res) {
 
 export async function updateProduct(req, res) {
   const { productId } = req.params;
-  const { title, description, priceAmount, priceCurrency, productType } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType, brand } = req.body;
 
   const product = await productModel.findOne({
     _id: productId,
@@ -258,6 +276,7 @@ export async function updateProduct(req, res) {
 
   if (title) product.title = title;
   if (productType) product.productType = productType;
+  if (brand) product.brand = brand;
   if (description) product.description = description;
   if (priceAmount) product.price.amount = Number(priceAmount);
   if (priceCurrency) product.price.currency = priceCurrency;

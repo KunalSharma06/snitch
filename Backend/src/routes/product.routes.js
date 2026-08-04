@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateSeller } from '../middlewares/auth.middleware.js';
-import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant} from '../controllers/product.controller.js';
+import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant, getFeaturedProducts} from '../controllers/product.controller.js';
 import multer from 'multer';
 import { createProductValidator } from '../validators/product.validator.js';
 
@@ -16,6 +16,7 @@ const productRouter = express.Router();
 productRouter.post("/create", authenticateSeller, upload.array('images', 7), createProductValidator, createProduct)
 productRouter.get("/seller", authenticateSeller, getSellerProducts);
 productRouter.get("/all", getAllProducts);
+productRouter.get("/featured", getFeaturedProducts);
 productRouter.get("/detail/:id", getProductDetail);
 productRouter.get("/:id/similar", getSimilarProducts);
 productRouter.post("/:productId/variants", authenticateSeller, upload.array('images', 7), addProductVariant);

@@ -316,6 +316,15 @@ const Cart = () => {
                       {/* Product Info */}
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
+                          {/* Brand */}
+                          {product?.brand && product.brand !== "Unbranded" && (
+                            <span
+                              className="text-[9px] uppercase tracking-[0.2em] font-medium block mb-1"
+                              style={{ color: tokens.primary }}
+                            >
+                              {product.brand}
+                            </span>
+                          )}
                           {/* Title */}
                           <h2
                             className="font-light leading-tight mb-3"

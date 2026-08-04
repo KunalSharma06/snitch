@@ -1,13 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import HeroSlider from "../components/HeroSlider";
+import BrandSlider from "../components/BrandSlider";
 
 const Home = () => {
-  const products = useSelector((state) => state.product.products);
+  const [products, setProducts] = useState([]);
   const user = useSelector((state) => state.auth.user);
-  const { handleGetAllProducts } = useProduct();
+  const { handleGetFeaturedProducts } = useProduct();
 
   const navigate = useNavigate();
 
@@ -16,7 +18,15 @@ const Home = () => {
       navigate("/seller/dashboard", { replace: true });
       return;
     }
-    handleGetAllProducts();
+    async function fetchFeatured() {
+      try {
+        const data = await handleGetFeaturedProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to fetch featured products", err);
+      }
+    }
+    fetchFeatured();
   }, [user, navigate]);
 
   return (
@@ -34,6 +44,8 @@ const Home = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
+        <HeroSlider products={products} />
+
         <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24">
           {/* ── Hero / Header ── */}
           <div className="pt-20 pb-20 text-center flex flex-col items-center">
@@ -91,6 +103,14 @@ const Home = () => {
 
                     {/* Product Details */}
                     <div className="flex flex-col gap-2">
+                      {product.brand && product.brand !== "Unbranded" && (
+                        <span
+                          className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                          style={{ color: "#C9A96E" }}
+                        >
+                          {product.brand}
+                        </span>
+                      )}
                       <h3
                         className="text-xl leading-snug transition-colors duration-300 group-hover:text-[#C9A96E]"
                         style={{
@@ -135,6 +155,55 @@ const Home = () => {
               </p>
             </div>
           )}
+
+          <BrandSlider />
+
+          {/* ── Explore More CTA ── */}
+          <div className="pb-32 flex flex-col items-center text-center">
+            <div
+              className="w-16 h-px mb-8"
+              style={{ backgroundColor: "#C9A96E" }}
+            />
+            <p
+              className="text-[10px] uppercase tracking-[0.24em] font-medium mb-4"
+              style={{ color: "#C9A96E" }}
+            >
+              Beyond The Edit
+            </p>
+            <h2
+              className="text-3xl md:text-4xl font-light leading-tight mb-6 max-w-md"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                color: "#1b1c1a",
+              }}
+            >
+              There's more to discover
+            </h2>
+            <p
+              className="text-sm leading-relaxed max-w-sm mb-10"
+              style={{ color: "#7A6E63" }}
+            >
+              This is only a glimpse. Step into the full archive for our
+              complete collection of curated pieces.
+            </p>
+            <button
+              onClick={() => navigate("/products")}
+              className="group relative px-12 py-5 text-[11px] uppercase tracking-[0.3em] font-medium overflow-hidden transition-all duration-500"
+              style={{
+                backgroundColor: "transparent",
+                border: "1px solid #1b1c1a",
+                color: "#1b1c1a",
+              }}
+            >
+              <span className="relative z-10 transition-colors duration-500 group-hover:text-[#fbf9f6]">
+                Explore The Full Archive
+              </span>
+              <span
+                className="absolute inset-0 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
+                style={{ backgroundColor: "#1b1c1a" }}
+              />
+            </button>
+          </div>
         </div>
 
         {/* ── Footer ── */}
@@ -143,7 +212,7 @@ const Home = () => {
           style={{ borderColor: "#e4e2df" }}
         >
           <span
-            className="text-[10px] uppercase tracking-[0.35em]"
+            className="text-[15px] uppercase tracking-[0.35em]"
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               color: "#C9A96E",
@@ -156,5 +225,148 @@ const Home = () => {
     </>
   );
 };
+
+
+
+//  <footer className="border-t" style={{ borderColor: "#e4e2df" }}>
+//    <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 py-16">
+//      <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+//        {/* Brand column */}
+//        <div className="col-span-2 md:col-span-1">
+//          <span
+//            className="text-lg tracking-[0.3em] uppercase block mb-4"
+//            style={{
+//              fontFamily: "'Cormorant Garamond', serif",
+//              color: "#C9A96E",
+//            }}
+//          >
+//            Snitch.
+//          </span>
+//          <p
+//            className="text-[12px] leading-relaxed max-w-[220px]"
+//            style={{ color: "#7A6E63" }}
+//          >
+//            Curated menswear for the modern minimalist. Crafted with intention,
+//            worn with confidence.
+//          </p>
+//        </div>
+
+//        {/* Shop column */}
+//        <div>
+//          <p
+//            className="text-[10px] uppercase tracking-[0.2em] font-medium mb-5"
+//            style={{ color: "#1b1c1a" }}
+//          >
+//            Shop
+//          </p>
+//          <ul className="flex flex-col gap-3">
+//            {[
+//              { label: "Full Archive", href: "/products" },
+//              { label: "New Arrivals", href: "/products" },
+//              { label: "Best Sellers", href: "/products" },
+//            ].map((item) => (
+//              <li key={item.label}>
+//                <a
+//                  href={item.href}
+//                  className="text-[12px] transition-colors duration-200"
+//                  style={{ color: "#7A6E63" }}
+//                  onMouseEnter={(e) => (e.target.style.color = "#C9A96E")}
+//                  onMouseLeave={(e) => (e.target.style.color = "#7A6E63")}
+//                >
+//                  {item.label}
+//                </a>
+//              </li>
+//            ))}
+//          </ul>
+//        </div>
+
+//        {/* Company column */}
+//        <div>
+//          <p
+//            className="text-[10px] uppercase tracking-[0.2em] font-medium mb-5"
+//            style={{ color: "#1b1c1a" }}
+//          >
+//            Company
+//          </p>
+//          <ul className="flex flex-col gap-3">
+//            {[
+//              { label: "About Us", href: "#" },
+//              { label: "Careers", href: "#" },
+//              { label: "Sell on Snitch", href: "/seller/dashboard" },
+//            ].map((item) => (
+//              <li key={item.label}>
+//                <a
+//                  href={item.href}
+//                  className="text-[12px] transition-colors duration-200"
+//                  style={{ color: "#7A6E63" }}
+//                  onMouseEnter={(e) => (e.target.style.color = "#C9A96E")}
+//                  onMouseLeave={(e) => (e.target.style.color = "#7A6E63")}
+//                >
+//                  {item.label}
+//                </a>
+//              </li>
+//            ))}
+//          </ul>
+//        </div>
+
+//        {/* Support column */}
+//        <div>
+//          <p
+//            className="text-[10px] uppercase tracking-[0.2em] font-medium mb-5"
+//            style={{ color: "#1b1c1a" }}
+//          >
+//            Support
+//          </p>
+//          <ul className="flex flex-col gap-3">
+//            {[
+//              { label: "Contact Us", href: "#" },
+//              { label: "Shipping & Returns", href: "#" },
+//              { label: "FAQs", href: "#" },
+//            ].map((item) => (
+//              <li key={item.label}>
+//                <a
+//                  href={item.href}
+//                  className="text-[12px] transition-colors duration-200"
+//                  style={{ color: "#7A6E63" }}
+//                  onMouseEnter={(e) => (e.target.style.color = "#C9A96E")}
+//                  onMouseLeave={(e) => (e.target.style.color = "#7A6E63")}
+//                >
+//                  {item.label}
+//                </a>
+//              </li>
+//            ))}
+//          </ul>
+//        </div>
+//      </div>
+
+//      {/* Bottom bar */}
+//      <div
+//        className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4"
+//        style={{ borderColor: "#e4e2df" }}
+//      >
+//        <span
+//          className="text-[10px] uppercase tracking-[0.2em]"
+//          style={{ color: "#B5ADA3" }}
+//        >
+//          Snitch. © {new Date().getFullYear()} — All rights reserved.
+//        </span>
+
+//        <div className="flex items-center gap-5">
+//          {["Instagram", "Pinterest", "TikTok"].map((social) => (
+//            <a
+//              key={social}
+//              href="#"
+//              className="text-[10px] uppercase tracking-[0.2em] transition-colors duration-200"
+//              style={{ color: "#7A6E63" }}
+//              onMouseEnter={(e) => (e.target.style.color = "#C9A96E")}
+//              onMouseLeave={(e) => (e.target.style.color = "#7A6E63")}
+//            >
+//              {social}
+//            </a>
+//          ))}
+//        </div>
+//      </div>
+//    </div>
+//  </footer>;
 
 export default Home;

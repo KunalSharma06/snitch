@@ -218,10 +218,27 @@ const ProductDetail = () => {
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.22em] text-[#7A6E63] hover:text-[#1b1c1a] transition-colors duration-300"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 , fontFamily: "sans-serif"}}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              fontFamily: "sans-serif",
+            }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ transform: "translateY(-1px)" }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M10 19l-7-7 7-7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              style={{ transform: "translateY(-1px)" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.2"
+                d="M10 19l-7-7 7-7"
+              />
             </svg>
             <span>Back</span>
           </button>
@@ -343,6 +360,14 @@ const ProductDetail = () => {
 
             {/* ── RIGHT: Product Details ── */}
             <div className="w-full lg:w-[45%] xl:w-[40%] lg:sticky lg:top-24 flex flex-col pt-4">
+              {product.brand && product.brand !== "Unbranded" && (
+                <span
+                  className="text-[11px] uppercase tracking-[0.24em] font-medium mb-2 block"
+                  style={{ color: "#C9A96E" }}
+                >
+                  {product.brand}
+                </span>
+              )}
               <h1
                 className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1] mb-6"
                 style={{
@@ -383,7 +408,8 @@ const ProductDetail = () => {
                     <div className="flex flex-wrap gap-2">
                       {values.map((val) => {
                         const isSelected = selectedAttributes[attrName] === val;
-                        const isCompatible = availableAttributes[attrName]?.includes(val);
+                        const isCompatible =
+                          availableAttributes[attrName]?.includes(val);
                         const shouldDisable = isSize && !isCompatible;
 
                         return (
@@ -392,7 +418,9 @@ const ProductDetail = () => {
                             onClick={() => handleAttributeChange(attrName, val)}
                             className={`px-4 py-2 text-[11px] uppercase tracking-[0.15em] font-medium transition-all duration-300 border ${isSelected ? "border-[#1b1c1a] bg-[#1b1c1a] text-[#fbf9f6]" : "border-[#d0c5b5] text-[#1b1c1a] hover:border-[#1b1c1a]"} ${shouldDisable && !isSelected ? "opacity-30 cursor-not-allowed border-[#e4e2df] line-through" : ""}`}
                             style={
-                              isSelected ? {} : { backgroundColor: "transparent" }
+                              isSelected
+                                ? {}
+                                : { backgroundColor: "transparent" }
                             }
                             disabled={shouldDisable}
                           >
@@ -425,28 +453,52 @@ const ProductDetail = () => {
                 >
                   The Details
                 </h3>
-                
-                {product.description && product.description.includes('-') && product.description.includes('\n') ? (
+
+                {product.description &&
+                product.description.includes("-") &&
+                product.description.includes("\n") ? (
                   <div className="flex flex-col gap-2 text-sm">
-                    {product.description.split('\n').map((line, idx) => {
+                    {product.description.split("\n").map((line, idx) => {
                       if (!line.trim()) return null;
-                      
+
                       // Support both '-' and ':' as separators
-                      const separator = line.includes(' - ') ? ' - ' : (line.includes('-') ? '-' : ':');
+                      const separator = line.includes(" - ")
+                        ? " - "
+                        : line.includes("-")
+                          ? "-"
+                          : ":";
                       const parts = line.split(separator);
-                      
+
                       if (parts.length >= 2) {
                         const key = parts[0].trim();
                         const value = parts.slice(1).join(separator).trim();
                         return (
-                          <div key={idx} className="flex gap-4 border-b pb-2 last:border-0" style={{ borderColor: "#e4e2df" }}>
-                            <span className="font-medium w-1/3 shrink-0" style={{ color: "#1b1c1a" }}>{key}</span>
-                            <span className="w-2/3" style={{ color: "#7A6E63" }}>{value}</span>
+                          <div
+                            key={idx}
+                            className="flex gap-4 border-b pb-2 last:border-0"
+                            style={{ borderColor: "#e4e2df" }}
+                          >
+                            <span
+                              className="font-medium w-1/3 shrink-0"
+                              style={{ color: "#1b1c1a" }}
+                            >
+                              {key}
+                            </span>
+                            <span
+                              className="w-2/3"
+                              style={{ color: "#7A6E63" }}
+                            >
+                              {value}
+                            </span>
                           </div>
                         );
                       }
                       return (
-                        <p key={idx} className="leading-relaxed" style={{ color: "#7A6E63" }}>
+                        <p
+                          key={idx}
+                          className="leading-relaxed"
+                          style={{ color: "#7A6E63" }}
+                        >
                           {line}
                         </p>
                       );
@@ -488,7 +540,7 @@ const ProductDetail = () => {
                       });
                       showToast(`${product.title} added to cart!`);
                     } catch (err) {
-                      showToast('Could not add to cart. Try again.');
+                      showToast("Could not add to cart. Try again.");
                     }
                   }}
                 >
@@ -546,7 +598,10 @@ const ProductDetail = () => {
 
           {/* ── Similar Products ── */}
           {similarProducts && similarProducts.length > 0 && (
-            <div className="mt-12 border-t pt-10" style={{ borderColor: "#e4e2df" }}>
+            <div
+              className="mt-12 border-t pt-10"
+              style={{ borderColor: "#e4e2df" }}
+            >
               <h2
                 className="text-2xl lg:text-3xl font-light mb-10 text-center"
                 style={{
@@ -566,7 +621,7 @@ const ProductDetail = () => {
                   return (
                     <div
                       onClick={() => {
-                        window.scrollTo(0,0);
+                        window.scrollTo(0, 0);
                         navigate(`/product/${simProd._id}`);
                       }}
                       key={simProd._id}
@@ -583,6 +638,14 @@ const ProductDetail = () => {
                         />
                       </div>
                       <div className="flex flex-col gap-1">
+                        {simProd.brand && simProd.brand !== "Unbranded" && (
+                          <span
+                            className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                            style={{ color: "#C9A96E" }}
+                          >
+                            {simProd.brand}
+                          </span>
+                        )}
                         <h3
                           className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] truncate"
                           style={{
@@ -614,58 +677,77 @@ const ProductDetail = () => {
       {/* ── Toast Notification ── */}
       <div
         style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
+          position: "fixed",
+          bottom: "32px",
+          right: "32px",
           zIndex: 9999,
-          transform: toast.visible ? 'translateY(0)' : 'translateY(120%)',
+          transform: toast.visible ? "translateY(0)" : "translateY(120%)",
           opacity: toast.visible ? 1 : 0,
-          transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease',
-          pointerEvents: toast.visible ? 'auto' : 'none',
+          transition:
+            "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+          pointerEvents: toast.visible ? "auto" : "none",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            backgroundColor: '#1b1c1a',
-            color: '#fbf9f6',
-            padding: '14px 20px',
-            borderRadius: '2px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            backgroundColor: "#1b1c1a",
+            color: "#fbf9f6",
+            padding: "14px 20px",
+            borderRadius: "2px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
             fontFamily: "'Inter', sans-serif",
-            fontSize: '12px',
-            letterSpacing: '0.05em',
-            minWidth: '240px',
-            maxWidth: '320px',
+            fontSize: "12px",
+            letterSpacing: "0.05em",
+            minWidth: "240px",
+            maxWidth: "320px",
           }}
         >
           {/* Checkmark icon */}
           <span
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '22px',
-              height: '22px',
-              borderRadius: '50%',
-              backgroundColor: '#C9A96E',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "22px",
+              height: "22px",
+              borderRadius: "50%",
+              backgroundColor: "#C9A96E",
               flexShrink: 0,
             }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2 6l3 3 5-5" stroke="#1b1c1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path
+                d="M2 6l3 3 5-5"
+                stroke="#1b1c1a"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </span>
-          <span style={{ flex: 1, lineHeight: '1.4' }}>{toast.message}</span>
+          <span style={{ flex: 1, lineHeight: "1.4" }}>{toast.message}</span>
           <button
-            onClick={() => setToast({ visible: false, message: '' })}
-            style={{ background: 'none', border: 'none', color: '#7A6E63', cursor: 'pointer', padding: '0', lineHeight: 1 }}
+            onClick={() => setToast({ visible: false, message: "" })}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#7A6E63",
+              cursor: "pointer",
+              padding: "0",
+              lineHeight: 1,
+            }}
             aria-label="Dismiss"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              <path
+                d="M1 1l12 12M13 1L1 13"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>

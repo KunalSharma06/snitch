@@ -416,7 +416,12 @@ const SellerProductDetails = () => {
               </div>
             ) : (
               <>
-                <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-2 uppercase">
+                {product.brand && product.brand !== "Unbranded" && (
+                  <span className="text-[11px] uppercase tracking-[0.24em] font-medium mb-2 block" style={{ color: "#C9A96E" }}>
+                    {product.brand}
+                  </span>
+                )}
+                <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-4 uppercase">
                   {product.title}
                 </h2>
                 <div className="text-[#c9a96e] text-xs font-semibold tracking-widest uppercase mb-4">
