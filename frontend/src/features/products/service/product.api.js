@@ -36,12 +36,16 @@ export async function getFeaturedProducts() {
 }
 
 export async function addProductVariant(productId, newProductVariant) {
-  const formData = new FormData;
+  const formData = new FormData();
   newProductVariant.images.forEach((image) => {
     formData.append(`images`, image.file);
-  })
+  });
   formData.append("stock", newProductVariant.stock);
   formData.append("priceAmount", newProductVariant.price || "");
+  formData.append(
+    "discountedPriceAmount",
+    newProductVariant.discountedPriceAmount || "",
+  );
   formData.append("attributes", JSON.stringify(newProductVariant.attributes));
   const res = await productApiInstance.post(`/${productId}/variants`, formData);
 
@@ -53,20 +57,22 @@ export async function updateVariantStock(productId, variantId, stock) {
   return res.data;
 }
 
-export async function updateProduct(productId, { title, description, priceAmount, priceCurrency, productType }) {
+export async function updateProduct(productId, { title, description, priceAmount,  discountedPriceAmount, priceCurrency, productType }) {
   const res = await productApiInstance.patch(`/${productId}`, {
     title,
     description,
     priceAmount,
+    discountedPriceAmount,
     priceCurrency,
     productType,
   });
   return res.data;
 }
 
-export async function updateVariantApi(productId, variantId, { priceAmount, priceCurrency, stock, attributes }) {
+export async function updateVariantApi(productId, variantId, { priceAmount,discountedPriceAmount, priceCurrency, stock, attributes }) {
   const res = await productApiInstance.patch(`/${productId}/variants/${variantId}`, {
     priceAmount,
+    discountedPriceAmount,
     priceCurrency,
     stock,
     attributes,

@@ -121,14 +121,33 @@ const Home = () => {
                         {product.title}
                       </h3>
 
-                      <div className="mt-2">
-                        <span
-                          className="text-[10px] uppercase tracking-[0.2em] font-medium"
-                          style={{ color: "#1b1c1a" }}
-                        >
-                          {product.price?.currency}{" "}
-                          {product.price?.amount?.toLocaleString()}
-                        </span>
+                      <div className="mt-2 flex items-center gap-2">
+                        {product.discountedPrice?.amount ? (
+                          <>
+                            <span
+                              className="text-[10px] uppercase tracking-[0.2em] font-medium"
+                              style={{ color: "#1b1c1a" }}
+                            >
+                              {product.discountedPrice.currency}{" "}
+                              {product.discountedPrice.amount.toLocaleString()}
+                            </span>
+                            <span
+                              className="text-[9px] uppercase tracking-[0.15em] line-through"
+                              style={{ color: "#B5ADA3" }}
+                            >
+                              {product.price?.currency}{" "}
+                              {product.price?.amount?.toLocaleString()}
+                            </span>
+                          </>
+                        ) : (
+                          <span
+                            className="text-[10px] uppercase tracking-[0.2em] font-medium"
+                            style={{ color: "#1b1c1a" }}
+                          >
+                            {product.price?.currency}{" "}
+                            {product.price?.amount?.toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

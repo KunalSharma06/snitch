@@ -15,6 +15,7 @@ const CreateProduct = () => {
     brand: "",
     description: "",
     priceAmount: "",
+    discountedPriceAmount: "",
     priceCurrency: "INR",
   });
   const [images, setImages] = useState([]); // [{ file, preview }]
@@ -80,6 +81,7 @@ const CreateProduct = () => {
       data.append("brand", formData.brand);
       data.append("description", formData.description);
       data.append("priceAmount", formData.priceAmount);
+      data.append("discountedPriceAmount", formData.discountedPriceAmount);
       data.append("priceCurrency", formData.priceCurrency);
       images.forEach((img) => data.append("images", img.file));
       await handleCreateProduct(data);
@@ -151,6 +153,7 @@ const CreateProduct = () => {
                 />
               </div>
 
+              {/* Brand */}
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="brand"
@@ -232,6 +235,31 @@ const CreateProduct = () => {
                     </select>
                   </div>
                 </div>
+              </div>
+
+              {/* Discounted Price (optional) */}
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="discountedPriceAmount"
+                  className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#7A6E63] font-[Inter,sans-serif]"
+                >
+                  Discounted Price (Optional)
+                </label>
+                <input
+                  id="discountedPriceAmount"
+                  type="number"
+                  name="discountedPriceAmount"
+                  value={formData.discountedPriceAmount}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="Leave empty for no discount"
+                  className="bg-transparent text-[#1b1c1a] border-b border-[#d0c5b5] focus:border-[#C9A96E] outline-none px-3 py-3 text-base transition-colors duration-300 placeholder:text-[#d0c5b5] font-[Inter,sans-serif]"
+                />
+                <p className="text-[10px] text-[#B5ADA3] font-[Inter,sans-serif]">
+                  If set, this shows as the selling price with the original
+                  price struck through
+                </p>
               </div>
             </div>
             {/* end LEFT COLUMN */}

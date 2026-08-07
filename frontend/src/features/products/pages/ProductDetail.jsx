@@ -194,9 +194,16 @@ const ProductDetail = () => {
         ? product.images
         : [{ url: "/snitch_editorial_warm.png" }];
 
-  const displayPrice = activeVariant?.price?.amount
+  const baseVariantPrice = activeVariant?.price?.amount
     ? activeVariant.price
     : product.price;
+
+  const discountPrice = activeVariant?.discountedPrice?.amount
+    ? activeVariant.discountedPrice
+    : product.discountedPrice;
+
+  const displayPrice = discountPrice?.amount ? discountPrice : baseVariantPrice;
+  const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
 
   return (
     <>
@@ -379,13 +386,33 @@ const ProductDetail = () => {
               </h1>
 
               <div className="mb-8">
-                <span
-                  className="text-sm uppercase tracking-[0.2em] font-medium"
-                  style={{ color: "#1b1c1a" }}
-                >
-                  {displayPrice?.currency}{" "}
-                  {displayPrice?.amount?.toLocaleString()}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-sm uppercase tracking-[0.2em] font-medium"
+                    style={{ color: "#1b1c1a" }}
+                  >
+                    {displayPrice?.currency}{" "}
+                    {displayPrice?.amount?.toLocaleString()}
+                  </span>
+                  {originalPrice && (
+                    <span
+                      className="text-xs uppercase tracking-[0.15em] line-through"
+                      style={{ color: "#B5ADA3" }}
+                    >
+                      {originalPrice.currency}{" "}
+                      {originalPrice.amount.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {originalPrice && (
+                  <p className="text-[11px] uppercase tracking-[0.15em] font-bold mt-2 text-green-600">
+                    You save {originalPrice.currency}{" "}
+                    {(
+                      originalPrice.amount - displayPrice.amount
+                    ).toLocaleString()}
+                  </p>
+                )}
               </div>
 
               <div

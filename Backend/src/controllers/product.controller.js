@@ -3,7 +3,7 @@ import { uploadFile } from "../services/storage.service.js";
 import mongoose from "mongoose";
 
 export async function createProduct(req, res) {
-  const { title, description, priceAmount, priceCurrency, productType, brand } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType, brand, discountedPriceAmount } = req.body;
   const seller = req.user;
 
   const images = await Promise.all(
@@ -24,6 +24,9 @@ export async function createProduct(req, res) {
       amount: priceAmount,
       currency: priceCurrency || "INR",
     },
+     discountedPrice: discountedPriceAmount
+      ? { amount: Number(discountedPriceAmount), currency: priceCurrency || "INR" }
+      : undefined,
     images,
     seller: seller._id,
   });
@@ -200,7 +203,9 @@ export async function addProductVariant(req, res) {
 
   const price = req.body.priceAmount;
   const stock = req.body.stock;
+   const discountedPrice = req.body.discountedPriceAmount;
   const attributes = JSON.parse(req.body.attributes || "{}");
+
 
   const combos = getAttributeCombinations(attributes);
 
@@ -211,6 +216,12 @@ export async function addProductVariant(req, res) {
         amount: Number(price) || product.price.amount,
         currency: req.body.priceCurrency || product.price.currency,
       },
+      discountedPrice: discountedPrice
+        ? {
+            amount: Number(discountedPrice),
+            currency: req.body.priceCurrency || product.price.currency,
+          }
+        : undefined,
       stock: Number(stock) || 0,
       attributes: combo,
     });
@@ -261,7 +272,7 @@ export async function updateVariantStock(req, res) {
 
 export async function updateProduct(req, res) {
   const { productId } = req.params;
-  const { title, description, priceAmount, priceCurrency, productType, brand } = req.body;
+  const { title, description, priceAmount, priceCurrency, productType, brand, discountedPriceAmount } = req.body;
 
   const product = await productModel.findOne({
     _id: productId,
@@ -280,6 +291,11 @@ export async function updateProduct(req, res) {
   if (description) product.description = description;
   if (priceAmount) product.price.amount = Number(priceAmount);
   if (priceCurrency) product.price.currency = priceCurrency;
+  if (discountedPriceAmount !== undefined) {
+    product.discountedPrice = discountedPriceAmount
+      ? { amount: Number(discountedPriceAmount), currency: priceCurrency || product.price.currency }
+      : undefined;
+  }
 
   await product.save();
 
@@ -292,7 +308,7 @@ export async function updateProduct(req, res) {
 
 export async function updateVariant(req, res) {
   const { productId, variantId } = req.params;
-  const { priceAmount, priceCurrency, stock, attributes } = req.body;
+  const { priceAmount, priceCurrency, stock, attributes, discountedPriceAmount } = req.body;
 
   const product = await productModel.findOne({
     _id: productId,
@@ -319,6 +335,15 @@ export async function updateVariant(req, res) {
       currency:
         priceCurrency || variant.price?.currency || product.price.currency,
     };
+  }
+  if (discountedPriceAmount !== undefined) {
+    variant.discountedPrice = discountedPriceAmount
+      ? {
+          amount: Number(discountedPriceAmount),
+          currency:
+            priceCurrency || variant.price?.currency || product.price.currency,
+        }
+      : undefined;
   }
   if (attributes) {
     // Replace the attributes map

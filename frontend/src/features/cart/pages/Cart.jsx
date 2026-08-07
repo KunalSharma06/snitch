@@ -277,12 +277,14 @@ const Cart = () => {
                   const { product, variant: variantId, price, _id } = item;
                   const variantDetail = getVariantDetails(product, variantId);
                   const imageUrl = getDisplayImage(product, variantDetail);
-                  const displayPrice =
+                  const basePrice =
                     price ?? variantDetail?.price ?? product?.price;
+                  const displayPrice = variantDetail?.discountedPrice?.amount
+                    ? variantDetail.discountedPrice
+                    : basePrice;
                   const qty = quantities[_id] ?? item.quantity ?? 1;
                   const attributes = variantDetail?.attributes ?? {};
                   const stock = variantDetail?.stock;
-                  const variantPrice = variantDetail?.price;
 
                   return (
                     <div
@@ -356,17 +358,30 @@ const Cart = () => {
                           )}
 
                           {/* Price */}
-                          <p
-                            className="text-[11px] uppercase tracking-[0.2em] font-medium mb-1"
-                            style={{ color: tokens.onSurface }}
-                          >
-                            {displayPrice
-                              ? formatCurrency(
-                                  displayPrice.amount,
-                                  displayPrice.currency,
-                                )
-                              : "—"}
-                          </p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p
+                              className="text-[11px] uppercase tracking-[0.2em] font-medium"
+                              style={{ color: tokens.onSurface }}
+                            >
+                              {displayPrice
+                                ? formatCurrency(
+                                    displayPrice.amount,
+                                    displayPrice.currency,
+                                  )
+                                : "—"}
+                            </p>
+                            {variantDetail?.discountedPrice?.amount && (
+                              <p
+                                className="text-[10px] uppercase tracking-[0.15em] line-through"
+                                style={{ color: tokens.muted }}
+                              >
+                                {formatCurrency(
+                                  basePrice.amount,
+                                  basePrice.currency,
+                                )}
+                              </p>
+                            )}
+                          </div>
 
                           {/* Stock */}
                           {stock !== undefined && (
@@ -378,38 +393,16 @@ const Cart = () => {
                             </p>
                           )}
 
-                          {displayPrice?.amount !== undefined &&
-                            variantPrice?.amount !== undefined &&
-                            displayPrice.amount !== variantPrice.amount && (
-                              <>
-                                {displayPrice.amount > variantPrice.amount ? (
-                                  <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-green-600 font-bold">
-                                    You will get this at{" "}
-                                    {formatCurrency(
-                                      variantPrice.amount,
-                                      variantPrice.currency,
-                                    )}{" "}
-                                    save{" "}
-                                    {Math.abs(
-                                      variantPrice.amount - displayPrice.amount,
-                                    )}
-                                    .{" "}
-                                  </p>
-                                ) : (
-                                  <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-red-600 font-bold">
-                                    Warning this product will cost you{" "}
-                                    {formatCurrency(
-                                      Math.abs(
-                                        variantPrice.amount -
-                                          displayPrice.amount,
-                                      ),
-                                      displayPrice.currency,
-                                    )}{" "}
-                                    more.{" "}
-                                  </p>
-                                )}
-                              </>
-                            )}
+                          {variantDetail?.discountedPrice?.amount && (
+                            <p className="text-[10px] uppercase tracking-[0.15em] mb-4 text-green-600 font-bold">
+                              You save{" "}
+                              {formatCurrency(
+                                basePrice.amount -
+                                  variantDetail.discountedPrice.amount,
+                                basePrice.currency,
+                              )}
+                            </p>
+                          )}
                         </div>
 
                         {/* Bottom Row: Quantity + Remove */}
@@ -636,7 +629,7 @@ const Cart = () => {
                 {/* Secondary ghost CTA */}
                 <button
                   id="continue-shopping"
-                  className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
+                  className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 cursor-pointer"
                   style={{
                     backgroundColor: "transparent",
                     border: `1px solid ${tokens.outlineVariant}`,
@@ -648,7 +641,7 @@ const Cart = () => {
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = tokens.outlineVariant;
                   }}
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/products")}
                 >
                   Continue Shopping
                 </button>

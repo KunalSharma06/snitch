@@ -32,6 +32,10 @@ const productSchema = new mongoose.Schema(
       type: priceSchema,
       required: true,
     },
+    discountedPrice: {
+      type: priceSchema,
+      required: false,
+    },
     images: [
       {
         url: {
@@ -59,6 +63,9 @@ const productSchema = new mongoose.Schema(
           of: String,
         },
         price: {
+          type: priceSchema,
+        },
+        discountedPrice: {
           type: priceSchema,
         },
       },
