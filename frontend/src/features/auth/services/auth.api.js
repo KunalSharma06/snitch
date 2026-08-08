@@ -100,4 +100,31 @@ export const resetPassword = async (resetToken, newPassword) => {
   return data;
 };
 
+export const getAddresses = async () => {
+  const { data } = await api.get("/auth/addresses");
+  return data;
+};
+
+export const addAddress = async (address) => {
+  const { data } = await api.post("/auth/addresses", address);
+  return data;
+};
+
+export const updateAddress = async (addressId, address) => {
+  const { data } = await api.patch(`/auth/addresses/${addressId}`, address);
+  return data;
+};
+
+export const deleteAddress = async (addressId) => {
+  const { data } = await api.delete(`/auth/addresses/${addressId}`);
+  return data;
+};
+
+export const setDefaultAddress = async (addressId) => {
+  const { data } = await api.patch(`/auth/addresses/${addressId}/default`);
+  return data;
+};
+
+
+
 export default api;

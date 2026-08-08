@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateSeller } from '../middlewares/auth.middleware.js';
-import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant, getFeaturedProducts} from '../controllers/product.controller.js';
+import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant, getFeaturedProducts, getFilterOptions} from '../controllers/product.controller.js';
 import multer from 'multer';
 import { createProductValidator } from '../validators/product.validator.js';
 
@@ -25,6 +25,7 @@ productRouter.patch("/:productId/variants/:variantId", authenticateSeller, updat
 productRouter.patch("/:productId", authenticateSeller, updateProduct);
 productRouter.delete("/:productId", authenticateSeller, deleteProduct);
 productRouter.delete("/:productId/variants/:variantId", authenticateSeller, deleteVariant);
+productRouter.get("/filter-options", getFilterOptions);
 
 
 export default productRouter;

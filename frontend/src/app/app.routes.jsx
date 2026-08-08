@@ -13,6 +13,8 @@ import Cart from "../features/cart/pages/Cart";
 import OrderSuccess from "../features/cart/pages/OrderSuccess";
 import AllProducts from "../features/products/pages/AllProducts";
 import AppLayout from "./AppLayout";
+import Checkout from "../features/cart/pages/Checkout";
+import Orders from "../features/cart/pages/Orders";
 
 export const routes = createBrowserRouter([
   {
@@ -55,10 +57,26 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "/checkout",
+        element: (
+          <Protected>
+            <Checkout />
+          </Protected>
+        ),
+      },
+      {
         path: "/order-success",
         element: (
           <Protected>
             <OrderSuccess />
+          </Protected>
+        ),
+      },
+      {
+        path: "/orders",
+        element: (
+          <Protected>
+            <Orders />
           </Protected>
         ),
       },

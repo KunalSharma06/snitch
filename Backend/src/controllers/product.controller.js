@@ -146,6 +146,26 @@ export async function getSimilarProducts(req, res) {
   }
 }
 
+export async function getFilterOptions(req, res) {
+  try {
+    const [categories, brands] = await Promise.all([
+      productModel.distinct("productType"),
+      productModel.distinct("brand"),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      categories: categories.filter(Boolean),
+      brands: brands.filter((b) => b && b !== "Unbranded"),
+    });
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    return res
+      .status(500)
+      .json({ message: "Error fetching filter options", success: false });
+  }
+}
+
 function getAttributeCombinations(attributes) {
   const entries = Object.entries(attributes).map(([key, val]) => {
     const values =
@@ -170,6 +190,8 @@ function getAttributeCombinations(attributes) {
   }
   return results;
 }
+
+
 
 export async function addProductVariant(req, res) {
   const productId = req.params.productId;

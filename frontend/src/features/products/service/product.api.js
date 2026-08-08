@@ -53,11 +53,24 @@ export async function addProductVariant(productId, newProductVariant) {
 }
 
 export async function updateVariantStock(productId, variantId, stock) {
-  const res = await productApiInstance.put(`/${productId}/variants/${variantId}/stock`, { stock });
+  const res = await productApiInstance.put(
+    `/${productId}/variants/${variantId}/stock`,
+    { stock },
+  );
   return res.data;
 }
 
-export async function updateProduct(productId, { title, description, priceAmount,  discountedPriceAmount, priceCurrency, productType }) {
+export async function updateProduct(
+  productId,
+  {
+    title,
+    description,
+    priceAmount,
+    discountedPriceAmount,
+    priceCurrency,
+    productType,
+  },
+) {
   const res = await productApiInstance.patch(`/${productId}`, {
     title,
     description,
@@ -69,14 +82,21 @@ export async function updateProduct(productId, { title, description, priceAmount
   return res.data;
 }
 
-export async function updateVariantApi(productId, variantId, { priceAmount,discountedPriceAmount, priceCurrency, stock, attributes }) {
-  const res = await productApiInstance.patch(`/${productId}/variants/${variantId}`, {
-    priceAmount,
-    discountedPriceAmount,
-    priceCurrency,
-    stock,
-    attributes,
-  });
+export async function updateVariantApi(
+  productId,
+  variantId,
+  { priceAmount, discountedPriceAmount, priceCurrency, stock, attributes },
+) {
+  const res = await productApiInstance.patch(
+    `/${productId}/variants/${variantId}`,
+    {
+      priceAmount,
+      discountedPriceAmount,
+      priceCurrency,
+      stock,
+      attributes,
+    },
+  );
   return res.data;
 }
 
@@ -86,6 +106,13 @@ export async function deleteProduct(productId) {
 }
 
 export async function deleteVariant(productId, variantId) {
-  const res = await productApiInstance.delete(`/${productId}/variants/${variantId}`);
+  const res = await productApiInstance.delete(
+    `/${productId}/variants/${variantId}`,
+  );
+  return res.data;
+}
+
+export async function getFilterOptions() {
+  const res = await productApiInstance.get("/filter-options");
   return res.data;
 }

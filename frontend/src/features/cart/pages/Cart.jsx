@@ -29,8 +29,6 @@ const Cart = () => {
     handleRemoveItem,
     handleIncrementCartItem,
     handleDecrementCartItem,
-    handleCreateCartOrder,
-    handleVerifyCartOrder,
   } = useCart();
   const navigate = useNavigate();
   const { error, isLoading, Razorpay } = useRazorpay();
@@ -118,35 +116,35 @@ const Cart = () => {
   const formatCurrency = (amount, currency = "INR") =>
     `${currency} ${Number(amount).toLocaleString("en-IN")}`;
 
-  async function handleCheckout() {
-    const order = await handleCreateCartOrder();
+  // async function handleCheckout() {
+  //   const order = await handleCreateCartOrder();
 
-    const options = {
-      key: "YOUR_RAZORPAY_KEY",
-      amount: order.amount, // Amount in paise
-      currency: order.currency,
-      name: "Snitch",
-      description: "Test Transaction",
-      order_id: order.id, // Generate order_id on server
-      handler: async (response) => {
-        const isValid = await handleVerifyCartOrder(response);
-        if (isValid) {
-          navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
-        }
-      },
-      prefill: {
-        name: user?.fullName,
-        email: user?.email,
-        contact: user?.contact,
-      },
-      theme: {
-        color: tokens.primary,
-      },
-    };
+  //   const options = {
+  //     key: "YOUR_RAZORPAY_KEY",
+  //     amount: order.amount, // Amount in paise
+  //     currency: order.currency,
+  //     name: "Snitch",
+  //     description: "Test Transaction",
+  //     order_id: order.id, // Generate order_id on server
+  //     handler: async (response) => {
+  //       const isValid = await handleVerifyCartOrder(response);
+  //       if (isValid) {
+  //         navigate(`/order-success?order_id=${response?.razorpay_order_id}`);
+  //       }
+  //     },
+  //     prefill: {
+  //       name: user?.fullName,
+  //       email: user?.email,
+  //       contact: user?.contact,
+  //     },
+  //     theme: {
+  //       color: tokens.primary,
+  //     },
+  //   };
 
-    const razorpayInstance = new Razorpay(options);
-    razorpayInstance.open();
-  }
+  //   const razorpayInstance = new Razorpay(options);
+  //   razorpayInstance.open();
+  // }
 
   const confirmRemoveItem = async () => {
     if (!removeTarget) return;
@@ -205,8 +203,8 @@ const Cart = () => {
               Curate your collection
             </p>
             <Link
-              to="/"
-              className="mt-4 px-10 py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
+              to="/products"
+              className="mt-4 px-10 py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 cursor-pointer"
               style={{
                 backgroundColor: tokens.onSurface,
                 color: tokens.surface,
@@ -621,7 +619,7 @@ const Cart = () => {
                     e.currentTarget.style.backgroundColor = tokens.onSurface;
                     e.currentTarget.style.color = tokens.surface;
                   }}
-                  onClick={handleCheckout}
+                  onClick={() => navigate("/checkout")}
                 >
                   Proceed to Checkout
                 </button>

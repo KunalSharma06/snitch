@@ -110,9 +110,22 @@ const SellerProductDetails = () => {
     }
   }
 
-  useEffect(() => {
-    fetchProductDetails();
-  }, [productId]);
+ useEffect(() => {
+   fetchProductDetails();
+ }, [productId]);
+
+ useEffect(() => {
+   if (groupByKey === null && localVariants.length > 0) {
+     const allKeys = new Set();
+     localVariants.forEach((v) => {
+       Object.keys(v.attributes || {}).forEach((k) => allKeys.add(k));
+     });
+     const keys = Array.from(allKeys);
+     if (keys.length > 0) {
+       setGroupByKey(keys[0]);
+     }
+   }
+ }, [localVariants, groupByKey]);
 
   // Handlers for modifying existing variant stock natively
   const handleStockChange = (index, newStock) => {
@@ -685,41 +698,36 @@ const SellerProductDetails = () => {
           )}
 
           {/* Group-by selector */}
-          {localVariants.length > 0 &&
-            (() => {
-              const allKeys = new Set();
-              localVariants.forEach((v) => {
-                Object.keys(v.attributes || {}).forEach((k) => allKeys.add(k));
-              });
-              const keys = Array.from(allKeys);
+          {(() => {
+            const allKeys = new Set();
+            localVariants.forEach((v) => {
+              Object.keys(v.attributes || {}).forEach((k) => allKeys.add(k));
+            });
+            const keys = Array.from(allKeys);
 
-              if (groupByKey === null && keys.length > 0) {
-                setGroupByKey(keys[0]);
-              }
-
-              return keys.length > 1 ? (
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="text-xs uppercase tracking-wider text-[#6e6258]">
-                    Group by:
-                  </span>
-                  {keys.map((k) => (
-                    <button
-                      key={k}
-                      onClick={() => setGroupByKey(k)}
-                      className="px-4 py-1.5 text-xs uppercase tracking-wider cursor-pointer transition-colors"
-                      style={{
-                        backgroundColor:
-                          groupByKey === k ? "#745a27" : "transparent",
-                        color: groupByKey === k ? "#fff" : "#6e6258",
-                        border: `1px solid ${groupByKey === k ? "#745a27" : "#d0c5b5"}`,
-                      }}
-                    >
-                      {k}
-                    </button>
-                  ))}
-                </div>
-              ) : null;
-            })()}
+            return keys.length > 1 ? (
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-xs uppercase tracking-wider text-[#6e6258]">
+                  Group by:
+                </span>
+                {keys.map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => setGroupByKey(k)}
+                    className="px-4 py-1.5 text-xs uppercase tracking-wider cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor:
+                        groupByKey === k ? "#745a27" : "transparent",
+                      color: groupByKey === k ? "#fff" : "#6e6258",
+                      border: `1px solid ${groupByKey === k ? "#745a27" : "#d0c5b5"}`,
+                    }}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+            ) : null;
+          })()}
 
           {/* Variants List */}
           {localVariants.length === 0 ? (

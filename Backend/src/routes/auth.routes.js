@@ -9,7 +9,12 @@ import {
   resendOTP,
   forgotPassword,
   resetPassword,
-  verifyResetOTP
+  verifyResetOTP,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress
 } from '../controllers/auth.controller.js';
 import passport from 'passport';
 import { authenticateUser } from '../middlewares/auth.middleware.js';
@@ -38,5 +43,10 @@ authRouter.get('/google/callback', passport.authenticate('google', { session: fa
 
 // Get current user
 authRouter.get("/me", authenticateUser, getMe);
+authRouter.get("/addresses", authenticateUser, getAddresses);
+authRouter.post("/addresses", authenticateUser, addAddress);
+authRouter.patch("/addresses/:addressId", authenticateUser, updateAddress);
+authRouter.delete("/addresses/:addressId", authenticateUser, deleteAddress);
+authRouter.patch("/addresses/:addressId/default", authenticateUser, setDefaultAddress);
 
 export default authRouter;

@@ -194,16 +194,18 @@ const ProductDetail = () => {
         ? product.images
         : [{ url: "/snitch_editorial_warm.png" }];
 
-  const baseVariantPrice = activeVariant?.price?.amount
-    ? activeVariant.price
-    : product.price;
+const baseVariantPrice = activeVariant?.price?.amount
+  ? activeVariant.price
+  : product.price;
 
-  const discountPrice = activeVariant?.discountedPrice?.amount
+const discountPrice = activeVariant
+  ? activeVariant.discountedPrice?.amount
     ? activeVariant.discountedPrice
-    : product.discountedPrice;
+    : null
+  : product.discountedPrice;
 
-  const displayPrice = discountPrice?.amount ? discountPrice : baseVariantPrice;
-  const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
+const displayPrice = discountPrice?.amount ? discountPrice : baseVariantPrice;
+const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
 
   return (
     <>

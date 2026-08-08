@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   contact: {
     type: String,
@@ -15,28 +15,40 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: function () {
       return !this.googleId;
-    }
+    },
   },
   fullName: {
     type: String,
-    required: true
+    required: true,
   },
   role: {
     type: String,
-    enum: ['buyer', 'seller'],
-    default: 'buyer'
+    enum: ["buyer", "seller"],
+    default: "buyer",
   },
   googleId: {
     type: String,
   },
   isEmailVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
+  addresses: [
+    {
+      fullName: { type: String, required: true },
+      phone: { type: String, required: true },
+      line1: { type: String, required: true },
+      line2: { type: String },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      pincode: { type: String, required: true },
+      isDefault: { type: Boolean, default: false },
+    },
+  ],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 userSchema.pre('save', async function () {

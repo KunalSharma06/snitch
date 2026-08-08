@@ -349,3 +349,129 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({ message: "Error resetting password" });
   }
 };
+
+// Get all saved addresses for logged-in user
+export const getAddresses = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user._id);
+    return res.status(200).json({
+      success: true,
+      addresses: user.addresses || [],
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error fetching addresses" });
+  }
+};
+
+// Add a new address
+export const addAddress = async (req, res) => {
+  const { fullName, phone, line1, line2, city, state, pincode } = req.body;
+
+  try {
+    const user = await userModel.findById(req.user._id);
+
+    // If this is the first address, make it default
+    const isFirst = user.addresses.length === 0;
+
+    user.addresses.push({
+      fullName,
+      phone,
+      line1,
+      line2,
+      city,
+      state,
+      pincode,
+      isDefault: isFirst,
+    });
+
+    await user.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Address added successfully",
+      addresses: user.addresses,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error adding address" });
+  }
+};
+
+// Update an existing address
+export const updateAddress = async (req, res) => {
+  const { addressId } = req.params;
+  const { fullName, phone, line1, line2, city, state, pincode } = req.body;
+
+  try {
+    const user = await userModel.findById(req.user._id);
+    const address = user.addresses.id(addressId);
+
+    if (!address) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+
+    if (fullName) address.fullName = fullName;
+    if (phone) address.phone = phone;
+    if (line1) address.line1 = line1;
+    if (line2 !== undefined) address.line2 = line2;
+    if (city) address.city = city;
+    if (state) address.state = state;
+    if (pincode) address.pincode = pincode;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Address updated successfully",
+      addresses: user.addresses,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error updating address" });
+  }
+};
+
+// Delete an address
+export const deleteAddress = async (req, res) => {
+  const { addressId } = req.params;
+
+  try {
+    const user = await userModel.findById(req.user._id);
+    user.addresses = user.addresses.filter(
+      (a) => a._id.toString() !== addressId
+    );
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Address removed successfully",
+      addresses: user.addresses,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error deleting address" });
+  }
+};
+
+// Set an address as default
+export const setDefaultAddress = async (req, res) => {
+  const { addressId } = req.params;
+
+  try {
+    const user = await userModel.findById(req.user._id);
+    user.addresses.forEach((a) => {
+      a.isDefault = a._id.toString() === addressId;
+    });
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Default address updated",
+      addresses: user.addresses,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Error setting default address" });
+  }
+};

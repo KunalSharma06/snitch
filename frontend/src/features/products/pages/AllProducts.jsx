@@ -12,31 +12,58 @@ const PRICE_RANGES = [
 
 const AllProducts = () => {
   const products = useSelector((state) => state.product.products);
-  const { handleGetAllProducts } = useProduct();
+  const { handleGetAllProducts, handleGetFilterOptions } = useProduct();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [filter, setFilter] = useState("ALL");
+ const STORAGE_KEY = "snitch_product_filters";
+
+  const loadSavedFilters = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saved = loadSavedFilters();
+
+  const [filter, setFilter] = useState(saved?.filter || "ALL");
   const [hoveredId, setHoveredId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState(saved?.appliedSearch || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // ── Filter panel state ──
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedPriceRange, setSelectedPriceRange] = useState(null);
+  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState(saved?.appliedFilters?.brands || []);
+  const [selectedCategories, setSelectedCategories] = useState(saved?.appliedFilters?.categories || []);
+  const [selectedPriceRange, setSelectedPriceRange] = useState(saved?.appliedFilters?.priceRange || null);
 
-  // Applied filters (only these actually affect the product grid)
-  const [appliedFilters, setAppliedFilters] = useState({
-    brands: [],
-    categories: [],
-    priceRange: null,
-  });
+  const [appliedFilters, setAppliedFilters] = useState(
+    saved?.appliedFilters || { brands: [], categories: [], priceRange: null }
+  );
+
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [availableBrands, setAvailableBrands] = useState([]);
 
   useEffect(() => {
     handleGetAllProducts();
+  }, []);
+
+  useEffect(() => {
+    async function fetchFilterOptions() {
+      try {
+        const data = await handleGetFilterOptions();
+        setAvailableCategories(data.categories || []);
+        setAvailableBrands(data.brands || []);
+      } catch (err) {
+        console.error("Failed to fetch filter options", err);
+      }
+    }
+    fetchFilterOptions();
   }, []);
 
   // Pre-fill brand filter if navigated here via ?brand=X
@@ -48,17 +75,17 @@ const AllProducts = () => {
     }
   }, [searchParams]);
 
-  const productTypes = products
-    ? [...new Set(products.map((p) => p.productType).filter(Boolean))]
-    : [];
+  useEffect(() => {
+    const toSave = {
+      filter,
+      appliedSearch,
+      appliedFilters,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }, [filter, appliedSearch, appliedFilters]);
 
-  const brands = products
-    ? [
-        ...new Set(
-          products.map((p) => p.brand).filter((b) => b && b !== "Unbranded"),
-        ),
-      ]
-    : [];
+ const productTypes = availableCategories;
+ const brands = availableBrands;
 
   const matchesQuery = (p, query) => {
     const combined =
@@ -111,21 +138,34 @@ const AllProducts = () => {
   };
 
   const handleApplyFilters = () => {
-    setAppliedFilters({
-      brands: selectedBrands,
-      categories: selectedCategories,
-      priceRange: selectedPriceRange,
-    });
     setIsFilterOpen(false);
+    setIsApplyingFilters(true);
+
+    setTimeout(() => {
+      setAppliedFilters({
+        brands: selectedBrands,
+        categories: selectedCategories,
+        priceRange: selectedPriceRange,
+      });
+      setIsApplyingFilters(false);
+    }, 900);
   };
 
-  const handleResetFilters = () => {
-    setSelectedBrands([]);
-    setSelectedCategories([]);
-    setSelectedPriceRange(null);
-    setAppliedFilters({ brands: [], categories: [], priceRange: null });
-    setIsFilterOpen(false);
-  };
+ const handleResetFilters = () => {
+   setIsFilterOpen(false);
+   setIsApplyingFilters(true);
+
+   setTimeout(() => {
+     setSelectedBrands([]);
+     setSelectedCategories([]);
+     setSelectedPriceRange(null);
+     setAppliedFilters({ brands: [], categories: [], priceRange: null });
+     setFilter("ALL");
+     setAppliedSearch("");
+     localStorage.removeItem(STORAGE_KEY);
+     setIsApplyingFilters(false);
+   }, 900);
+ };
 
   const activeFilterCount =
     appliedFilters.brands.length +
@@ -277,7 +317,8 @@ const AllProducts = () => {
           {appliedSearch && (
             <div className="w-full max-w-md mx-auto mb-6 flex items-center justify-center gap-2">
               <span className="text-[12px]" style={{ color: "#7A6E63" }}>
-                Showing results for <strong style={{ color: "#1b1c1a" }}>"{appliedSearch}"</strong>
+                Showing results for{" "}
+                <strong style={{ color: "#1b1c1a" }}>"{appliedSearch}"</strong>
               </span>
               <button
                 onClick={() => setAppliedSearch("")}
@@ -376,8 +417,24 @@ const AllProducts = () => {
         </div>
 
         {/* ── Product Grid ── */}
-        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pb-32">
-          {filtered && filtered.length > 0 ? (
+        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pb-32 relative">
+          {isApplyingFilters ? (
+            <div className="py-32 flex flex-col items-center justify-center gap-4">
+              <div
+                className="w-8 h-8 border-2 rounded-full animate-spin"
+                style={{
+                  borderColor: "#e4e2df",
+                  borderTopColor: "#C9A96E",
+                }}
+              />
+              <p
+                className="text-[10px] uppercase tracking-[0.2em]"
+                style={{ color: "#B5ADA3" }}
+              >
+                Curating your selection...
+              </p>
+            </div>
+          ) : filtered && filtered.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
               {filtered.map((product) => {
                 const imageUrl =
@@ -429,7 +486,7 @@ const AllProducts = () => {
                         {product.title}
                       </h3>
 
-                     <div className="mt-3 flex items-center gap-2">
+                      <div className="mt-3 flex items-center gap-2">
                         {product.discountedPrice?.amount ? (
                           <>
                             <span

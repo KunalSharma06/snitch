@@ -1,7 +1,18 @@
 import express from 'express';
 import { authenticateUser } from '../middlewares/auth.middleware.js';
-import { validateAddToCart, validateIncrementCartItemQuantity, validateDecrementCartItemQuantity } from '../validators/cart.validator.js';
-import { addToCart, getCart, incrementCartItemQuantity, decrementCartItemQuantity, removeFromCart} from '../controllers/cart.controller.js';
+import { validateAddToCart, validateIncrementCartItemQuantity, validateDecrementCartItemQuantity} from '../validators/cart.validator.js';
+import {
+  addToCart,
+  getCart,
+  incrementCartItemQuantity,
+  decrementCartItemQuantity,
+  removeFromCart,
+  createOrderController,
+  verifyOrderController,
+  getUserOrders,
+  cancelOrder,
+} from "../controllers/cart.controller.js";
+
 const cartRouter = express.Router();
 
 
@@ -10,6 +21,8 @@ cartRouter.get("/", authenticateUser, getCart);
 cartRouter.patch("/quantity/increment/:productId/:variantId", authenticateUser, validateIncrementCartItemQuantity, incrementCartItemQuantity);
 cartRouter.patch("/quantity/decrement/:productId/:variantId", authenticateUser, validateDecrementCartItemQuantity, decrementCartItemQuantity);
 cartRouter.delete("/remove/:productId/:variantId", authenticateUser, removeFromCart);
-// cartRouter.post("/payment/create/order", authenticateUser, createOrderController);
-// cartRouter.post("/payment/verify/order", authenticateUser, verifyOrderController);
+cartRouter.post("/payment/create/order", authenticateUser, createOrderController);
+cartRouter.post("/payment/verify/order", authenticateUser, verifyOrderController);
+cartRouter.get("/orders", authenticateUser, getUserOrders);
+cartRouter.patch("/orders/:orderId/cancel", authenticateUser, cancelOrder);
 export default cartRouter;

@@ -5,7 +5,9 @@ import mongoose from "mongoose";
 const { createOrder } = await import('../services/payment.service.js');
 import { getCartDetails } from "../dao/cart.dao.js";
 import paymentModel from "../models/payment.model.js";
-import {validatePaymentVerification} from "razorpay/dist/utils/razorpay-utils.js";
+import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
+import { config } from "../config/config.js";
+import { emailService } from "../services/email.service.js";
 
 export const addToCart = async (req, res) => {
   const { productId, variantId } = req.params;
@@ -102,7 +104,7 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
   const user = req.user;
 
-  const cart = await getCartDetails(user._id);
+  let cart = await getCartDetails(user._id);
 
   if (!cart) {
     cart = await cartModel.create({ user: user._id });
@@ -288,6 +290,226 @@ export const removeFromCart = async (req, res) => {
   });
 };
 
+export const createOrderController = async (req, res) => {
+  const { addressId, paymentMethod } = req.body;
+  console.log("Received:", { addressId, paymentMethod });
+  console.log("User addresses:", req.user.addresses);
+
+  const cart = await getCartDetails(req.user._id);
+
+  if (!cart || !cart.items?.length) {
+    return res.status(400).json({
+      message: "Cart is empty",
+      success: false,
+    });
+  }
+
+  // Find the selected address from the user's saved addresses
+  const user = req.user;
+  const selectedAddress = user.addresses.id(addressId);
+
+  if (!selectedAddress) {
+    return res.status(400).json({
+      message: "Please select a valid delivery address",
+      success: false,
+    });
+  }
+
+  const addressSnapshot = {
+    fullName: selectedAddress.fullName,
+    phone: selectedAddress.phone,
+    line1: selectedAddress.line1,
+    line2: selectedAddress.line2,
+    city: selectedAddress.city,
+    state: selectedAddress.state,
+    pincode: selectedAddress.pincode,
+  };
+
+  const orderItems = cart.items.map((item) => ({
+    title: item.product.title,
+    productId: item.product._id,
+    variantId: item.variant,
+    quantity: item.quantity,
+    images: item.product.variants.images || item.product.images,
+    description: item.product.description,
+    price: {
+      amount:
+        item.product.variants.discountedPrice?.amount ||
+        item.product.variants.price.amount ||
+        item.product.price.amount,
+      currency:
+        item.product.variants.price.currency || item.product.price.currency,
+    },
+  }));
+
+  // Cash on Delivery — no Razorpay order needed
+  if (paymentMethod === "cod") {
+    const payment = await paymentModel.create({
+      user: req.user._id,
+      status: "cod_pending",
+      paymentMethod: "cod",
+      address: addressSnapshot,
+      estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+      price: {
+        amount: cart.totalPrice,
+        currency: cart.currency,
+      },
+      orderItems,
+    });
+
+     await cartModel.findOneAndUpdate(
+       { user: req.user._id },
+       { $set: { items: [] } },
+     );
+
+    emailService.sendOrderConfirmationEmail(req.user.email, req.user.fullName, payment);
+
+    return res.status(200).json({
+      message: "Order placed successfully (Cash on Delivery)",
+      success: true,
+      codOrder: true,
+      payment,
+    });
+  }
+
+  // Razorpay flow (unchanged from your original)
+  const order = await createOrder({ amount: cart.totalPrice, currency: "INR" });
+
+  const payment = await paymentModel.create({
+    user: req.user._id,
+    razorpay: {
+      orderId: order.id,
+    },
+    paymentMethod: "razorpay",
+    address: addressSnapshot,
+    estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+    price: {
+      amount: cart.totalPrice,
+      currency: cart.currency,
+    },
+    orderItems,
+  });
+
+  return res.status(200).json({
+    message: "Order created successfully",
+    success: true,
+    order,
+  });
+};
+
+export const verifyOrderController = async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+    req.body;
+
+  const payment = await paymentModel.findOne({
+    "razorpay.orderId": razorpay_order_id,
+    status: "pending",
+  });
+
+  if (!payment) {
+    return res.status(404).json({
+      message: "Payment not found",
+      success: false,
+    });
+  }
+
+  const isPaymentValid = validatePaymentVerification(
+    {
+      order_id: razorpay_order_id,
+      payment_id: razorpay_payment_id,
+    },
+    razorpay_signature,
+    config.RAZORPAY_KEY_SECRET,
+  );
+
+  if (!isPaymentValid) {
+    payment.status = "failed";
+    await payment.save();
+
+    return res.status(400).json({
+      message: "Payment verification failed",
+      success: false,
+    });
+  }
+
+  payment.status = "paid";
+  payment.razorpay.paymentId = razorpay_payment_id;
+  payment.razorpay.signature = razorpay_signature;
+  await payment.save();
+
+  await cartModel.findOneAndUpdate(
+    { user: req.user._id },
+    { $set: { items: [] } },
+    { new: true },
+  );
+
+   emailService.sendOrderConfirmationEmail(req.user.email, req.user.fullName, payment);
+
+
+  return res.status(200).json({
+    message: "Payment verified successfully",
+    success: true,
+    payment,
+  });
+};
+
+
+export const getUserOrders = async (req, res) => {
+  try {
+    const orders = await paymentModel
+      .find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching orders" });
+  }
+};
+
+export const cancelOrder = async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await paymentModel.findOne({
+      _id: orderId,
+      user: req.user._id,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const hoursSinceOrder = (Date.now() - order.createdAt) / (1000 * 60 * 60);
+    if (hoursSinceOrder > 24) {
+      return res.status(400).json({
+        message: "Cancellation window has expired (24 hours).",
+      });
+    }
+
+    if (order.status === "cancelled") {
+      return res.status(400).json({ message: "Order is already cancelled" });
+    }
+
+    order.status = "cancelled";
+    await order.save();
+
+     emailService.sendOrderCancellationEmail(req.user.email, req.user.fullName, order);
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error cancelling order" });
+  }
+};
 
 // export const createOrderController = async (req, res) => {
 

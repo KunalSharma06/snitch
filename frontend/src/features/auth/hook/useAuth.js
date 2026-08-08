@@ -8,7 +8,12 @@ import {
   logout,
   forgotPassword,
   resetPassword,
-  verifyResetOTP
+  verifyResetOTP,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
 } from "../services/auth.api.js";
 import { useDispatch } from "react-redux";
 
@@ -97,6 +102,31 @@ async function handleResetPassword(resetToken, newPassword) {
   return data;
 }
 
+async function handleGetAddresses() {
+  const data = await getAddresses();
+  return data.addresses;
+}
+
+async function handleAddAddress(address) {
+  const data = await addAddress(address);
+  return data.addresses;
+}
+
+async function handleUpdateAddress(addressId, address) {
+  const data = await updateAddress(addressId, address);
+  return data.addresses;
+}
+
+async function handleDeleteAddress(addressId) {
+  const data = await deleteAddress(addressId);
+  return data.addresses;
+}
+
+async function handleSetDefaultAddress(addressId) {
+  const data = await setDefaultAddress(addressId);
+  return data.addresses;
+  }
+  
   return {
     handleRequestOTP,
     handleVerifyOTP,
@@ -107,5 +137,10 @@ async function handleResetPassword(resetToken, newPassword) {
     handleForgotPassword,
     handleVerifyResetOTP,
     handleResetPassword,
+    handleGetAddresses,
+    handleAddAddress,
+    handleUpdateAddress,
+    handleDeleteAddress,
+    handleSetDefaultAddress,
   };
 };

@@ -1,4 +1,4 @@
-import { addItem, getCart, incrementCartItemApi, decrementCartItemApi, removeItemApi, createOrderApi, verifyCartOrderApi } from "../service/cart.api.js";
+import { addItem, getCart, incrementCartItemApi, decrementCartItemApi, removeItemApi, createOrderApi, verifyCartOrderApi, getUserOrdersApi, cancelOrderApi} from "../service/cart.api.js";
 import { useDispatch } from "react-redux";
 import { setCart, incrementCartItem, removeItem } from "../state/cart.slice.js";
 
@@ -48,8 +48,11 @@ export const useCart = () => {
     return data;
   }
 
-  async function handleCreateCartOrder() {
-    const data = await createOrderApi();
+  async function handleCreateCartOrder(addressId, paymentMethod) {
+    const data = await createOrderApi(addressId, paymentMethod);
+    if (paymentMethod === "cod") {
+      return data;
+    }
     return data.order;
   }
 
@@ -58,5 +61,15 @@ export const useCart = () => {
     return data.success;
   }
 
-  return { handleAddItem, handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder };
+  async function handleGetUserOrders() {
+    const data = await getUserOrdersApi();
+    return data.orders;
+  }
+
+  async function handleCancelOrder(orderId) {
+    const data = await cancelOrderApi(orderId);
+    return data;
+  }
+
+  return { handleAddItem, handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder, handleGetUserOrders, handleCancelOrder };
 }
