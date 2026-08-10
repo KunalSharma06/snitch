@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { 
-  getMe, 
-  googleCallback, 
-  loginUser, 
+import {
+  getMe,
+  googleCallback,
+  loginUser,
   logoutUser,
   requestOTP,
   verifyOTPAndRegister,
@@ -14,8 +14,11 @@ import {
   addAddress,
   updateAddress,
   deleteAddress,
-  setDefaultAddress
-} from '../controllers/auth.controller.js';
+  setDefaultAddress,
+  updateProfile,
+  requestEmailChangeOTP,
+  verifyEmailChangeOTP,
+} from "../controllers/auth.controller.js";
 import passport from 'passport';
 import { authenticateUser } from '../middlewares/auth.middleware.js';
 
@@ -48,5 +51,9 @@ authRouter.post("/addresses", authenticateUser, addAddress);
 authRouter.patch("/addresses/:addressId", authenticateUser, updateAddress);
 authRouter.delete("/addresses/:addressId", authenticateUser, deleteAddress);
 authRouter.patch("/addresses/:addressId/default", authenticateUser, setDefaultAddress);
+authRouter.patch("/profile", authenticateUser, updateProfile);
+authRouter.post("/request-email-change-otp", authenticateUser, requestEmailChangeOTP);
+authRouter.post("/verify-email-change-otp", authenticateUser, verifyEmailChangeOTP);
+
 
 export default authRouter;

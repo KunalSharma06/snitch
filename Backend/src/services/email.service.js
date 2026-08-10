@@ -15,7 +15,7 @@ class EmailService {
   async sendOTPEmail(email, otp, fullName) {
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: `"Snitch" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: "Your Snitch Clothing OTP Verification Code",
         html: `

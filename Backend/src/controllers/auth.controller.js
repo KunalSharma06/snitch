@@ -10,7 +10,7 @@ async function sendTokenResponse(user, res, message) {
     expiresIn: "2d",
   });
 
-  res.cookie("token", token)
+  res.cookie("token", token);
 
   return res.status(200).json({
     message,
@@ -21,9 +21,9 @@ async function sendTokenResponse(user, res, message) {
       contact: user.contact,
       fullName: user.fullName,
       role: user.role,
-      isEmailVerified: user.isEmailVerified
-    }
-  })
+      isEmailVerified: user.isEmailVerified,
+    },
+  });
 }
 
 // Step 1: Request OTP for registration
@@ -45,14 +45,15 @@ export const requestOTP = async (req, res) => {
     // Check if OTP already sent for this email (optional check)
     const otpExists = await otpService.otpExists(email);
     if (otpExists) {
-      return res.status(400).json({ 
-        message: "OTP already sent to this email. Please verify or request a new one in 10 minutes." 
+      return res.status(400).json({
+        message:
+          "OTP already sent to this email. Please verify or request a new one in 10 minutes.",
       });
     }
 
     // Generate and send OTP
     const otpResult = await otpService.sendOTP(email);
-    
+
     // Send email with OTP
     await emailService.sendOTPEmail(email, otpResult.otp, fullName);
 
@@ -63,19 +64,22 @@ export const requestOTP = async (req, res) => {
       contact,
       password,
       fullName,
-      isSeller: isSeller === true || isSeller === "true"
+      isSeller: isSeller === true || isSeller === "true",
     };
-    
+
     // Store with 10 minute expiry (same as OTP)
     const redisClient = otpService.client;
-    await redisClient.setEx(registrationKey, 180, JSON.stringify(registrationData));
+    await redisClient.setEx(
+      registrationKey,
+      180,
+      JSON.stringify(registrationData),
+    );
 
     return res.status(200).json({
       message: "OTP sent to your email. Please verify within 10 minutes.",
       success: true,
-      email: email
+      email: email,
     });
-
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error sending OTP" });
@@ -91,8 +95,8 @@ export const verifyOTPAndRegister = async (req, res) => {
     const otpVerification = await otpService.verifyOTP(email, otp);
 
     if (!otpVerification.success) {
-      return res.status(400).json({ 
-        message: otpVerification.message 
+      return res.status(400).json({
+        message: otpVerification.message,
       });
     }
 
@@ -102,8 +106,8 @@ export const verifyOTPAndRegister = async (req, res) => {
     const registrationDataStr = await redisClient.get(registrationKey);
 
     if (!registrationDataStr) {
-      return res.status(400).json({ 
-        message: "Registration data not found. Please request OTP again." 
+      return res.status(400).json({
+        message: "Registration data not found. Please request OTP again.",
       });
     }
 
@@ -116,7 +120,7 @@ export const verifyOTPAndRegister = async (req, res) => {
       password: registrationData.password,
       fullName: registrationData.fullName,
       role: registrationData.isSeller ? "seller" : "buyer",
-      isEmailVerified: true
+      isEmailVerified: true,
     });
 
     // Delete registration data from Redis
@@ -125,8 +129,11 @@ export const verifyOTPAndRegister = async (req, res) => {
     emailService.sendWelcomeEmail(user.email, user.fullName);
 
     // Send login response
-    await sendTokenResponse(user, res, "Email verified! Account created successfully");
-
+    await sendTokenResponse(
+      user,
+      res,
+      "Email verified! Account created successfully",
+    );
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error verifying OTP" });
@@ -179,9 +186,9 @@ export const loginUser = async (req, res) => {
 
     // Check if email is verified
     if (!user.isEmailVerified) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Please verify your email first. Request OTP to continue.",
-        email: email
+        email: email,
       });
     }
 
@@ -196,7 +203,7 @@ export const loginUser = async (req, res) => {
     console.log(err);
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const googleCallback = async (req, res) => {
   const { id, displayName, emails, photos } = req.user;
@@ -210,8 +217,8 @@ export const googleCallback = async (req, res) => {
       email,
       fullName: displayName,
       googleId: id,
-      isEmailVerified: true // Google users are pre-verified
-    })
+      isEmailVerified: true, // Google users are pre-verified
+    });
   }
 
   const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
@@ -220,7 +227,7 @@ export const googleCallback = async (req, res) => {
 
   res.cookie("token", token);
   res.redirect("http://localhost:5173/");
-}
+};
 
 export const getMe = async (req, res) => {
   const user = req.user;
@@ -233,10 +240,10 @@ export const getMe = async (req, res) => {
       contact: user.contact,
       fullName: user.fullName,
       role: user.role,
-      isEmailVerified: user.isEmailVerified
-    }
+      isEmailVerified: user.isEmailVerified,
+    },
   });
-}
+};
 
 export const logoutUser = async (req, res) => {
   res.clearCookie("token");
@@ -246,7 +253,6 @@ export const logoutUser = async (req, res) => {
   });
 };
 
-
 // Step 1: Request password reset OTP
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -255,19 +261,22 @@ export const forgotPassword = async (req, res) => {
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "No account found with this email" });
+      return res
+        .status(400)
+        .json({ message: "No account found with this email" });
     }
 
     if (user.googleId && !user.password) {
-      return res.status(400).json({ 
-        message: "This account uses Google Sign-In. Please log in with Google." 
+      return res.status(400).json({
+        message: "This account uses Google Sign-In. Please log in with Google.",
       });
     }
 
     const otpExists = await otpService.otpExists(email);
     if (otpExists) {
-      return res.status(400).json({ 
-        message: "OTP already sent. Please check your email or wait before requesting again." 
+      return res.status(400).json({
+        message:
+          "OTP already sent. Please check your email or wait before requesting again.",
       });
     }
 
@@ -277,9 +286,8 @@ export const forgotPassword = async (req, res) => {
     return res.status(200).json({
       message: "OTP sent to your email",
       success: true,
-      email
+      email,
     });
-
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error sending OTP" });
@@ -300,7 +308,7 @@ export const verifyResetOTP = async (req, res) => {
     const resetToken = jwt.sign(
       { email, purpose: "password-reset" },
       config.JWT_SECRET,
-      { expiresIn: "5m" }
+      { expiresIn: "5m" },
     );
 
     return res.status(200).json({
@@ -323,7 +331,9 @@ export const resetPassword = async (req, res) => {
     try {
       payload = jwt.verify(resetToken, config.JWT_SECRET);
     } catch (err) {
-      return res.status(400).json({ message: "Reset session expired. Please start again." });
+      return res
+        .status(400)
+        .json({ message: "Reset session expired. Please start again." });
     }
 
     if (payload.purpose !== "password-reset") {
@@ -341,9 +351,8 @@ export const resetPassword = async (req, res) => {
 
     return res.status(200).json({
       message: "Password reset successfully. Please log in.",
-      success: true
+      success: true,
     });
-
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error resetting password" });
@@ -439,7 +448,7 @@ export const deleteAddress = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
     user.addresses = user.addresses.filter(
-      (a) => a._id.toString() !== addressId
+      (a) => a._id.toString() !== addressId,
     );
     await user.save();
 
@@ -473,5 +482,104 @@ export const setDefaultAddress = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error setting default address" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  const { fullName, email, contact } = req.body;
+
+  try {
+    const user = req.user;
+
+    if (email && email !== user.email) {
+      const existing = await userModel.findOne({ email });
+      if (existing) {
+        return res.status(400).json({
+          message: "Email is already in use",
+          success: false,
+        });
+      }
+    }
+
+    if (fullName) user.fullName = fullName;
+    if (email) user.email = email;
+    if (contact) user.contact = contact;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      success: true,
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error updating profile" });
+  }
+};
+
+export const requestEmailChangeOTP = async (req, res) => {
+  const { newEmail } = req.body;
+
+  if (!newEmail || !/^\S+@\S+\.\S+$/.test(newEmail)) {
+    return res
+      .status(400)
+      .json({ message: "Please enter a valid email address" });
+  }
+
+  try {
+    const existing = await userModel.findOne({ email: newEmail });
+    if (existing) {
+      return res.status(400).json({ message: "This email is already in use" });
+    }
+
+
+    const { otp } = await otpService.sendOTP(newEmail);
+    console.log("OTP for email change:", otp, "-> sending to:", newEmail);
+
+    await emailService.sendOTPEmail(newEmail, otp, req.user.fullName);
+        console.log("sendOTPEmail call completed");
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your new email address",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error sending OTP" });
+  }
+};
+
+export const verifyEmailChangeOTP = async (req, res) => {
+  const { newEmail, otp } = req.body;
+
+  if (!newEmail || !otp) {
+    return res.status(400).json({ message: "Missing email or OTP" });
+  }
+
+  try {
+    const result = await otpService.verifyOTP(newEmail, otp);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.message });
+    }
+
+    const existing = await userModel.findOne({ email: newEmail });
+    if (existing) {
+      return res.status(400).json({ message: "This email is already in use" });
+    }
+
+    const user = req.user;
+    user.email = newEmail;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Email updated successfully",
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error verifying OTP" });
   }
 };

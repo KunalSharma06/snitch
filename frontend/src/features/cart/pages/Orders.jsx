@@ -124,6 +124,17 @@ const Orders = () => {
         }}
       >
         <div className="max-w-5xl mx-auto px-8 lg:px-16 pt-12 lg:pt-16">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            style={{ color: tokens.secondary }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+
           <h1
             className="font-light mb-12"
             style={{

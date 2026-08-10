@@ -125,6 +125,20 @@ export const setDefaultAddress = async (addressId) => {
   return data;
 };
 
+export const updateProfile = async (profileData) => {
+  const { data } = await api.patch("/auth/profile", profileData);
+  return data;
+};
+
+export const requestEmailChangeOTP = async (newEmail) => {
+  const { data } = await api.post("/auth/request-email-change-otp", { newEmail });
+  return data;
+};
+
+export const verifyEmailChangeOTP = async (newEmail, otp) => {
+  const { data } = await api.post("/auth/verify-email-change-otp", { newEmail, otp });
+  return data;
+};
 
 
 export default api;

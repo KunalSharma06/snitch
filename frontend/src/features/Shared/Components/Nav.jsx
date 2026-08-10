@@ -10,6 +10,109 @@ const Nav = () => {
   const cartItems = useSelector((state) => state.cart?.items);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
+
+  const menuItems = [
+    {
+      label: "Home",
+      path: "/",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
+          <path d="M9 21v-6h6v6" />
+        </svg>
+      ),
+    },
+    {
+      label: "Profile",
+      path: "/profile",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+        </svg>
+      ),
+    },
+    {
+      label: "Products",
+      path: "/products",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      ),
+    },
+
+    {
+      label: "Your Orders",
+      path: "/orders",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20.5 7.5 12 3 3.5 7.5v9L12 21l8.5-4.5v-9z" />
+          <path d="M3.5 7.5 12 12l8.5-4.5" />
+          <path d="M12 12v9" />
+        </svg>
+      ),
+    },
+    {
+      label: "Favourites",
+      path: "/favourites",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -31,16 +134,14 @@ const Nav = () => {
           >
             {user ? (
               <>
-                <span style={{ color: "#1b1c1a" }}>{user.fullName}</span>
-                {user.role === "seller" && (
+                {user.role === "seller" ? (
                   <Link
                     to="/seller/dashboard"
                     className="transition-colors hover:text-[#C9A96E]"
                   >
                     Seller Dashboard
                   </Link>
-                )}
-                {user.role !== "seller" && (
+                ) : (
                   <>
                     <Link
                       to="/cart"
@@ -81,11 +182,11 @@ const Nav = () => {
                       )}
                     </Link>
 
-                    <Link
-                      to="/orders"
-                      className="relative flex items-center hover:opacity-70 transition-opacity"
+                    <button
+                      onClick={() => setShowDrawer(true)}
+                      className="flex items-center hover:opacity-70 transition-opacity cursor-pointer"
                       style={{ color: "#1b1c1a" }}
-                      aria-label="Your orders"
+                      aria-label="Account menu"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -98,20 +199,12 @@ const Nav = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        <path d="M20.5 7.5 12 3 3.5 7.5v9L12 21l8.5-4.5v-9z" />
-                        <path d="M3.5 7.5 12 12l8.5-4.5" />
-                        <path d="M12 12v9" />
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
                       </svg>
-                    </Link>
+                    </button>
                   </>
                 )}
-                <button
-                  onClick={() => setShowLogoutModal(true)}
-                  className="transition-colors
-                                    text-[11px] font-medium hover:text-red-500 cursor-pointer"
-                >
-                  Logout
-                </button>
               </>
             ) : (
               <>
@@ -133,10 +226,108 @@ const Nav = () => {
         </div>
       </nav>
 
+      {/* Right-side Account Drawer */}
+      {showDrawer && (
+        <div className="fixed inset-0 z-[9999]">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: "rgba(27, 28, 26, 0.4)" }}
+            onClick={() => setShowDrawer(false)}
+          />
+          {/* Panel */}
+          <div
+            className="absolute top-0 right-0 h-full w-full max-w-sm flex flex-col animate-slide-in-right"
+            style={{
+              backgroundColor: "#fbf9f6",
+              boxShadow: "-10px 0 40px rgba(27,28,26,0.12)",
+            }}
+          >
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-8 pt-10 pb-6 border-b"
+              style={{ borderColor: "#e4e2df" }}
+            >
+              <div>
+                <p
+                  className="text-[9px] uppercase tracking-[0.2em]"
+                  style={{ color: "#B5ADA3" }}
+                >
+                  Signed in as
+                </p>
+                <p
+                  className="text-sm font-medium mt-1"
+                  style={{ color: "#1b1c1a" }}
+                >
+                  {user?.fullName}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDrawer(false)}
+                className="cursor-pointer"
+                style={{ color: "#7A6E63" }}
+                aria-label="Close"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Menu items */}
+            <div className="flex-1 px-4 py-6">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setShowDrawer(false)}
+                  className="flex items-center gap-4 px-4 py-4 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors hover:bg-[#f5f3f0]"
+                  style={{ color: "#1b1c1a" }}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Logout — pinned at bottom, brand-styled, centered text */}
+                        <div className="px-6 pb-8 pt-4 border-t" style={{ borderColor: '#e4e2df' }}>
+                            <button
+                                onClick={() => {
+                                    setShowDrawer(false)
+                                    setShowLogoutModal(true)
+                                }}
+                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium cursor-pointer transition-all duration-300"
+                                style={{ backgroundColor: '#1b1c1a', color: '#fbf9f6', textAlign: 'center' }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#C9A96E'
+                                    e.currentTarget.style.color = '#1b1c1a'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#1b1c1a'
+                                    e.currentTarget.style.color = '#fbf9f6'
+                                }}
+                            >
+                                Logout
+                            </button>
+                        </div>
+          </div>
+        </div>
+      )}
+
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div
-          className="fixed inset-0 z-9999 flex items-center justify-center p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
           style={{ backgroundColor: "rgba(27, 28, 26, 0.4)" }}
         >
           <div
@@ -212,6 +403,13 @@ const Nav = () => {
                 }
                 .animate-fade-in-scale {
                     animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); }
+                    to { transform: translateX(0); }
+                }
+                .animate-slide-in-right {
+                    animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}</style>
     </>

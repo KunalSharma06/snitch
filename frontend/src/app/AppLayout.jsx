@@ -2,14 +2,26 @@ import React, { useEffect } from "react";
 import Nav from "../features/Shared/Components/Nav";
 import { Outlet } from "react-router";
 import ScrollToTop from "../features/Shared/Components/ScrollToTop";
+import { useFavourites } from "../features/favourites/hook/useFavourites";
+import { useSelector } from "react-redux";
+
 
 const AppLayout = () => {
+  const user = useSelector((state) => state.auth.user);
+  const { handleLoadFavouriteIds } = useFavourites();
+
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      handleLoadFavouriteIds();
+    }
+  }, [user]);
 
   return (
     <>

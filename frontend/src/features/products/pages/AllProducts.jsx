@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useProduct } from "../hook/useProduct";
 import { useNavigate, useSearchParams } from "react-router";
+import FavouriteButton from "../../favourites/components/FavouriteButton";
 
 const PRICE_RANGES = [
   { label: "Under ₹1,000", min: 0, max: 1000 },
@@ -465,6 +466,9 @@ const AllProducts = () => {
                         className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
                         style={{ backgroundColor: "rgba(27,28,26,0.03)" }}
                       />
+                      <div className="absolute top-3 right-3 z-10">
+                        <FavouriteButton productId={product._id} size={20} />
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-center text-center px-4">

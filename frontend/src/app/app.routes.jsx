@@ -15,6 +15,8 @@ import AllProducts from "../features/products/pages/AllProducts";
 import AppLayout from "./AppLayout";
 import Checkout from "../features/cart/pages/Checkout";
 import Orders from "../features/cart/pages/Orders";
+import Profile from "../features/auth/components/Profile";
+import Favourites from "../features/favourites/pages/Favourites";
 
 export const routes = createBrowserRouter([
   {
@@ -49,10 +51,26 @@ export const routes = createBrowserRouter([
         element: <AllProducts />,
       },
       {
+        path: "/profile",
+        element: (
+          <Protected>
+            <Profile />
+          </Protected>
+        ),
+      },
+      {
         path: "/cart",
         element: (
           <Protected>
             <Cart />
+          </Protected>
+        ),
+      },
+      {
+        path: "/favourites",
+        element: (
+          <Protected>
+            <Favourites />
           </Protected>
         ),
       },

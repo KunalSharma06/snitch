@@ -14,6 +14,9 @@ import {
   updateAddress,
   deleteAddress,
   setDefaultAddress,
+  updateProfile,
+  requestEmailChangeOTP,
+  verifyEmailChangeOTP
 } from "../services/auth.api.js";
 import { useDispatch } from "react-redux";
 
@@ -126,6 +129,22 @@ async function handleSetDefaultAddress(addressId) {
   const data = await setDefaultAddress(addressId);
   return data.addresses;
   }
+
+async function handleUpdateProfile(profileData) {
+  const data = await updateProfile(profileData);
+  dispatch(setUser(data.user));
+  return data.user;
+  }
+async function handleRequestEmailChangeOTP(newEmail) {
+  const data = await requestEmailChangeOTP(newEmail);
+  return data;
+}
+  
+async function handleVerifyEmailChangeOTP(newEmail, otp) {
+  const data = await verifyEmailChangeOTP(newEmail, otp);
+  dispatch(setUser(data.user));
+  return data.user;
+}
   
   return {
     handleRequestOTP,
@@ -142,5 +161,8 @@ async function handleSetDefaultAddress(addressId) {
     handleUpdateAddress,
     handleDeleteAddress,
     handleSetDefaultAddress,
+    handleUpdateProfile,
+    handleRequestEmailChangeOTP,
+    handleVerifyEmailChangeOTP
   };
 };

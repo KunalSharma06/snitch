@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { useProduct } from "../hook/useProduct";
 import { useCart } from "../../cart/hook/useCart";
+import FavouriteButton from "../../favourites/components/FavouriteButton";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -377,16 +378,20 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                   {product.brand}
                 </span>
               )}
-              <h1
-                className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1] mb-6"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  color: "#1b1c1a",
-                }}
-              >
-                {product.title}
-              </h1>
-
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <h1
+                  className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1]"
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    color: "#1b1c1a",
+                  }}
+                >
+                  {product.title}
+                </h1>
+                <div className="pt-2 shrink-0">
+                  <FavouriteButton productId={product._id} size={24} />
+                </div>
+              </div>
               <div className="mb-8">
                 <div className="flex items-center gap-3">
                   <span
@@ -657,7 +662,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                       className="group cursor-pointer flex flex-col"
                     >
                       <div
-                        className="aspect-[4/5] overflow-hidden mb-4"
+                        className="aspect-[4/5] overflow-hidden mb-4 relative"
                         style={{ backgroundColor: "#f5f3f0" }}
                       >
                         <img
@@ -665,6 +670,9 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                           alt={simProd.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
+                        <div className="absolute top-3 right-3 z-10">
+                          <FavouriteButton productId={simProd._id} size={18} />
+                        </div>
                       </div>
                       <div className="flex flex-col gap-1">
                         {simProd.brand && simProd.brand !== "Unbranded" && (
@@ -684,14 +692,33 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                         >
                           {simProd.title}
                         </h3>
-                        <div className="mt-1">
-                          <span
-                            className="text-[9px] uppercase tracking-[0.2em] font-medium"
-                            style={{ color: "#1b1c1a" }}
-                          >
-                            {simProd.price?.currency}{" "}
-                            {simProd.price?.amount?.toLocaleString()}
-                          </span>
+                        <div className="mt-1 flex items-center gap-2">
+                          {simProd.discountedPrice?.amount ? (
+                            <>
+                              <span
+                                className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                                style={{ color: "#1b1c1a" }}
+                              >
+                                {simProd.discountedPrice.currency}{" "}
+                                {simProd.discountedPrice.amount.toLocaleString()}
+                              </span>
+                              <span
+                                className="text-[8px] uppercase tracking-[0.15em] line-through"
+                                style={{ color: "#B5ADA3" }}
+                              >
+                                {simProd.price?.currency}{" "}
+                                {simProd.price?.amount?.toLocaleString()}
+                              </span>
+                            </>
+                          ) : (
+                            <span
+                              className="text-[9px] uppercase tracking-[0.2em] font-medium"
+                              style={{ color: "#1b1c1a" }}
+                            >
+                              {simProd.price?.currency}{" "}
+                              {simProd.price?.amount?.toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
