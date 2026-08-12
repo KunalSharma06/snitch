@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useProduct } from "../hook/useProduct";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import ConfirmModal from "../../Shared/Components/ConfirmModel.jsx";
 
 // Helper icons
@@ -65,8 +65,10 @@ const SellerProductDetails = () => {
     price: { amount: "", currency: "INR" },
     discountedPriceAmount: "",
   });
+  const [isSavingVariant, setIsSavingVariant] = useState(false);
 
   const { productId } = useParams();
+  const navigate = useNavigate();
   const {
     handleGetProductById,
     handleAddProductVariant,
@@ -172,6 +174,8 @@ const SellerProductDetails = () => {
       return;
     }
 
+    setIsSavingVariant(true);
+
     // Maps preview URL so the variant list can display the image locally
     const cleanImages = newVariant.images.map((img) => ({
       url: img.previewUrl,
@@ -220,6 +224,8 @@ const SellerProductDetails = () => {
     } catch (err) {
       console.error("Failed to add variant:", err);
       alert("Error: " + (err?.response?.data?.message || err.message));
+    } finally {
+      setIsSavingVariant(false);
     }
   };
 
@@ -327,6 +333,18 @@ const SellerProductDetails = () => {
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-sans pb-24">
       <main className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-8">
+        {/* Back Button */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="mb-8 text-[10px] uppercase tracking-[0.2em] font-medium font-[Inter,sans-serif] flex items-center gap-3 text-[#7A6E63] hover:text-[#C9A96E] transition-colors cursor-pointer"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Dashboard
+        </button>
+
         {/* Base Product Info */}
         <section className="flex flex-col md:flex-row gap-8 mb-16">
           <div className="w-full md:w-1/2">
@@ -689,9 +707,10 @@ const SellerProductDetails = () => {
               <div className="mt-10 flex justify-end">
                 <button
                   onClick={handleAddNewVariant}
-                  className="bg-gradient-to-r from-[#745a27] to-[#c9a96e] text-[#ffffff] px-8 py-3 uppercase tracking-wider text-sm hover:opacity-90 transition-opacity cursor-pointer"
+                  disabled={isSavingVariant}
+                  className="bg-gradient-to-r from-[#745a27] to-[#c9a96e] text-[#ffffff] px-8 py-3 uppercase tracking-wider text-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                 >
-                  Save Variant
+                  {isSavingVariant ? "Processing..." : "Save Variant"}
                 </button>
               </div>
             </div>

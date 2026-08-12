@@ -96,9 +96,21 @@ const CreateProduct = () => {
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-sans selection:bg-[#C9A96E]/30 selection:text-[#1b1c1a]">
       {/* Page shell — constrained width, centred */}
-      <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24">
+      <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-10">
+        {/* Back Button */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="mb-2 text-[10px] uppercase tracking-[0.2em] font-medium font-[Inter,sans-serif] flex items-center gap-3 text-[#7A6E63] hover:text-[#C9A96E] transition-colors cursor-pointer"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Dashboard
+        </button>
+
         {/* Header */}
-        <div className="pt-10 pb-2">
+        <div className="pt-6 pb-2">
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-light tracking-tight text-[#1b1c1a]">
               New Listing

@@ -8,6 +8,7 @@ import paymentModel from "../models/payment.model.js";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
 import { config } from "../config/config.js";
 import { emailService } from "../services/email.service.js";
+import userModel from "../models/user.model.js";
 
 export const addToCart = async (req, res) => {
   const { productId, variantId } = req.params;
@@ -495,6 +496,7 @@ export const cancelOrder = async (req, res) => {
     }
 
     order.status = "cancelled";
+    order.fulfillmentStatus = "cancelled";
     await order.save();
 
      emailService.sendOrderCancellationEmail(req.user.email, req.user.fullName, order);
@@ -508,6 +510,170 @@ export const cancelOrder = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error cancelling order" });
+  }
+};
+
+export const getAllOrders = async (req, res) => {
+  const { status, search, page = 1, limit = 20 } = req.query;
+
+  try {
+    const filter = {};
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { "address.fullName": { $regex: search, $options: "i" } },
+        { "address.phone": { $regex: search, $options: "i" } },
+        { _id: mongoose.Types.ObjectId.isValid(search) ? search : null },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [orders, total] = await Promise.all([
+      paymentModel
+        .find(filter)
+        .populate("user", "fullName email contact")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      paymentModel.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      orders,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / Number(limit)),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching orders" });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = [
+    "pending",
+    "paid",
+    "failed",
+    "cod_pending",
+    "cod_delivered",
+    "cancelled",
+  ];
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid status value" });
+  }
+
+  try {
+    const order = await paymentModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const previousStatus = order.status;
+    order.status = status;
+    await order.save();
+
+    // Notify customer if admin marks a COD order as delivered
+    if (status === "cod_delivered" && previousStatus !== "cod_delivered") {
+      const user = await userModel.findById(order.user);
+      if (user) {
+        // Optional: could add a sendOrderDeliveredEmail here later
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order status updated",
+      order,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error updating order status" });
+  }
+};
+
+export const getAdminOrderStats = async (req, res) => {
+  try {
+    const [totalOrders, totalRevenue, statusCounts, fulfillmentCounts] =
+      await Promise.all([
+        paymentModel.countDocuments({}),
+        paymentModel.aggregate([
+          { $match: { status: { $in: ["paid", "cod_pending"] } } },
+          { $group: { _id: null, total: { $sum: "$price.amount" } } },
+        ]),
+        paymentModel.aggregate([
+          { $group: { _id: "$status", count: { $sum: 1 } } },
+        ]),
+        paymentModel.aggregate([
+          { $group: { _id: "$fulfillmentStatus", count: { $sum: 1 } } },
+        ]),
+      ]);
+
+    return res.status(200).json({
+      success: true,
+      totalOrders,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      statusCounts: statusCounts.reduce(
+        (acc, s) => ({ ...acc, [s._id]: s.count }),
+        {},
+      ),
+      fulfillmentCounts: fulfillmentCounts.reduce(
+        (acc, s) => ({ ...acc, [s._id]: s.count }),
+        {},
+      ),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching stats" });
+  }
+};
+
+export const updateFulfillmentStatus = async (req, res) => {
+  const { orderId } = req.params;
+  const { fulfillmentStatus } = req.body;
+
+    console.log("UPDATE FULFILLMENT:", orderId, fulfillmentStatus);
+
+  const validStatuses = ["processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
+
+  if (!validStatuses.includes(fulfillmentStatus)) {
+    return res.status(400).json({ message: "Invalid fulfillment status" });
+  }
+
+  try {
+    const order = await paymentModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.fulfillmentStatus = fulfillmentStatus;
+
+    // Cancelling fulfillment also cancels the order overall
+    if (fulfillmentStatus === "cancelled") {
+      order.status = "cancelled";
+    }
+
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Fulfillment status updated",
+      order,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error updating fulfillment status" });
   }
 };
 

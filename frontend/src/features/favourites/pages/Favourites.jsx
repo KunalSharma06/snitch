@@ -65,19 +65,19 @@ const Favourites = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-6xl mx-auto px-8 lg:px-16 pt-12 lg:pt-16">
+        <div className="max-w-6xl mx-auto px-8 lg:px-16 pt-8 lg:pt-10">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-6 text-[10px] uppercase tracking-[0.2em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -87,7 +87,7 @@ const Favourites = () => {
           </button>
 
           <h1
-            className="font-light mb-12"
+            className="font-light mb-8"
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(2rem, 4vw, 3rem)",

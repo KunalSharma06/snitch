@@ -32,11 +32,10 @@ export const removeItemApi = async ({ productId, variantId }) => {
 
 export const decrementCartItemApi = async ({ productId, variantId }) => {
   const res = await cartApiInstance.patch(
-    `/quantity/decrement/${productId}/${variantId}`
+    `/quantity/decrement/${productId}/${variantId}`,
   );
   return res.data;
 };
-
 
 export async function createOrderApi(addressId, paymentMethod) {
   const res = await cartApiInstance.post("/payment/create/order", {
@@ -46,14 +45,18 @@ export async function createOrderApi(addressId, paymentMethod) {
   return res.data;
 }
 
-export const verifyCartOrderApi = async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) => {
+export const verifyCartOrderApi = async ({
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+}) => {
   const res = await cartApiInstance.post("/payment/verify/order", {
     razorpay_order_id,
     razorpay_payment_id,
-    razorpay_signature
+    razorpay_signature,
   });
-    return res.data;
-}
+  return res.data;
+};
 
 export async function getUserOrdersApi() {
   const res = await cartApiInstance.get("/orders");
@@ -62,5 +65,20 @@ export async function getUserOrdersApi() {
 
 export async function cancelOrderApi(orderId) {
   const res = await cartApiInstance.patch(`/orders/${orderId}/cancel`);
+  return res.data;
+}
+
+export async function getAllOrdersApi(params) {
+  const res = await cartApiInstance.get("/admin/orders", { params });
+  return res.data;
+}
+
+export async function getAdminStatsApi() {
+  const res = await cartApiInstance.get("/admin/stats");
+  return res.data;
+}
+
+export async function updateFulfillmentStatusApi(orderId, fulfillmentStatus) {
+  const res = await cartApiInstance.patch(`/admin/orders/${orderId}/fulfillment`, { fulfillmentStatus });
   return res.data;
 }

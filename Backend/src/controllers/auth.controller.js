@@ -174,6 +174,12 @@ export const resendOTP = async (req, res) => {
 };
 
 // Original login (only for already verified users)
+const getAdminEmails = () =>
+  (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -196,6 +202,16 @@ export const loginUser = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Auto-promote to admin if email is whitelisted
+    const adminEmails = getAdminEmails();
+    if (
+      adminEmails.includes(user.email.toLowerCase()) &&
+      user.role !== "admin"
+    ) {
+      user.role = "admin";
+      await user.save();
     }
 
     await sendTokenResponse(user, res, "Logged in successfully");
@@ -230,7 +246,14 @@ export const googleCallback = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  const user = req.user;
+  let user = req.user;
+
+  const adminEmails = getAdminEmails();
+  if (adminEmails.includes(user.email.toLowerCase()) && user.role !== "admin") {
+    user.role = "admin";
+    await user.save();
+  }
+
   res.status(200).json({
     message: "User fetched successfully",
     success: true,

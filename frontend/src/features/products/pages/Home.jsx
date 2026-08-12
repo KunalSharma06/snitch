@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import HeroSlider from "../components/HeroSlider";
 import BrandSlider from "../components/BrandSlider";
+// import AISummaryModal from "../components/AISummaryModal";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -121,7 +122,7 @@ const Home = () => {
                         {product.title}
                       </h3>
 
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
                         {product.discountedPrice?.amount ? (
                           <>
                             <span
@@ -138,6 +139,12 @@ const Home = () => {
                               {product.price?.currency}{" "}
                               {product.price?.amount?.toLocaleString()}
                             </span>
+                            <span
+                              className="text-[9px] uppercase tracking-[0.2em] font-medium ml-1"
+                              style={{ color: "#ba1a1a" }}
+                            >
+                              Save {Math.round(((product.price.amount - product.discountedPrice.amount) / product.price.amount) * 100)}%
+                            </span>
                           </>
                         ) : (
                           <span
@@ -149,6 +156,9 @@ const Home = () => {
                           </span>
                         )}
                       </div>
+                      {/* <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                        <AISummaryModal productId={product._id} productTitle={product.title} />
+                      </div> */}
                     </div>
                   </div>
                 );

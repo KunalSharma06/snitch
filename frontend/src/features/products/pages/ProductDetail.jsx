@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router";
 import { useProduct } from "../hook/useProduct";
 import { useCart } from "../../cart/hook/useCart";
 import FavouriteButton from "../../favourites/components/FavouriteButton";
+import AISummaryModal from "../components/AISummaryModal";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -378,7 +379,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                   {product.brand}
                 </span>
               )}
-              <div className="flex items-start justify-between gap-4 mb-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
                 <h1
                   className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1]"
                   style={{
@@ -388,9 +389,12 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                 >
                   {product.title}
                 </h1>
-                <div className="pt-2 shrink-0">
+                <div className="pt-2 shrink-0 flex items-center gap-3">
                   <FavouriteButton productId={product._id} size={24} />
                 </div>
+              </div>
+              <div className="mb-6">
+                <AISummaryModal productId={product._id} productTitle={product.title} variantId={activeVariant?._id}/>
               </div>
               <div className="mb-8">
                 <div className="flex items-center gap-3">
@@ -402,24 +406,25 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                     {displayPrice?.amount?.toLocaleString()}
                   </span>
                   {originalPrice && (
-                    <span
-                      className="text-xs uppercase tracking-[0.15em] line-through"
-                      style={{ color: "#B5ADA3" }}
-                    >
-                      {originalPrice.currency}{" "}
-                      {originalPrice.amount.toLocaleString()}
-                    </span>
+                    <>
+                      <span
+                        className="text-xs uppercase tracking-[0.15em] line-through"
+                        style={{ color: "#B5ADA3" }}
+                      >
+                        {originalPrice.currency}{" "}
+                        {originalPrice.amount.toLocaleString()}
+                      </span>
+                      <span
+                        className="text-[10px] uppercase tracking-[0.2em] font-medium ml-2"
+                        style={{ color: "#ba1a1a" }}
+                      >
+                        Save {Math.round(((originalPrice.amount - displayPrice.amount) / originalPrice.amount) * 100)}%
+                      </span>
+                    </>
                   )}
                 </div>
 
-                {originalPrice && (
-                  <p className="text-[11px] uppercase tracking-[0.15em] font-bold mt-2 text-green-600">
-                    You save {originalPrice.currency}{" "}
-                    {(
-                      originalPrice.amount - displayPrice.amount
-                    ).toLocaleString()}
-                  </p>
-                )}
+
               </div>
 
               <div
@@ -708,6 +713,12 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                               >
                                 {simProd.price?.currency}{" "}
                                 {simProd.price?.amount?.toLocaleString()}
+                              </span>
+                              <span
+                                className="text-[8px] uppercase tracking-[0.2em] font-medium ml-1"
+                                style={{ color: "#ba1a1a" }}
+                              >
+                                Save {Math.round(((simProd.price.amount - simProd.discountedPrice.amount) / simProd.price.amount) * 100)}%
                               </span>
                             </>
                           ) : (

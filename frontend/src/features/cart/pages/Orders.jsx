@@ -31,6 +31,22 @@ const STATUS_COLORS = {
   cancelled: "#c0392b",
 };
 
+const FULFILLMENT_LABELS = {
+  processing: "Processing",
+  shipped: "Shipped",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
+const FULFILLMENT_COLORS = {
+  processing: "#B58A3D",
+  shipped: "#2563eb",
+  out_for_delivery: "#7c3aed",
+  delivered: "#2e7d32",
+  cancelled: "#c0392b",
+};
+
 const Orders = () => {
   const { handleGetUserOrders, handleCancelOrder } = useCart();
   const navigate = useNavigate();
@@ -123,20 +139,29 @@ const Orders = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-5xl mx-auto px-8 lg:px-16 pt-12 lg:pt-16">
+        <div className="max-w-5xl mx-auto px-8 lg:px-16 pt-8 lg:pt-10">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-6 text-[10px] uppercase tracking-[0.2em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             Back
           </button>
 
           <h1
-            className="font-light mb-12"
+            className="font-light mb-8"
             style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(2rem, 4vw, 3rem)",
@@ -173,10 +198,10 @@ const Orders = () => {
               {orders.map((order) => (
                 <div
                   key={order._id}
-                  className="p-6"
+                  className="p-6 md:p-8 rounded-sm transition-all duration-300"
                   style={{
                     backgroundColor: tokens.surfaceLowest,
-                    boxShadow: "0 10px 30px rgba(27,28,26,0.04)",
+                    border: `1px solid ${tokens.surfaceHighest}`,
                   }}
                 >
                   <div
@@ -186,6 +211,12 @@ const Orders = () => {
                     }}
                   >
                     <div>
+                      <p
+                        className="text-[10px] uppercase tracking-[0.2em] font-bold mb-1"
+                        style={{ color: tokens.onSurface }}
+                      >
+                        Order ID : #{order._id}
+                      </p>
                       <p
                         className="text-[10px] uppercase tracking-[0.15em]"
                         style={{ color: tokens.muted }}
@@ -202,15 +233,33 @@ const Orders = () => {
                         </p>
                       )}
                     </div>
-                    <span
-                      className="text-[10px] uppercase tracking-[0.15em] font-bold px-3 py-1.5"
-                      style={{
-                        color: STATUS_COLORS[order.status],
-                        backgroundColor: "#f5f3f0",
-                      }}
-                    >
-                      {STATUS_LABELS[order.status] || order.status}
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span
+                        className="text-[10px] uppercase tracking-[0.15em] font-bold px-3 py-1.5"
+                        style={{
+                          color: STATUS_COLORS[order.status],
+                          backgroundColor: "#f5f3f0",
+                        }}
+                      >
+                        {STATUS_LABELS[order.status] || order.status}
+                      </span>
+                      {order.fulfillmentStatus &&
+                        order.status !== "cancelled" && (
+                          <span
+                            className="text-[9px] uppercase tracking-[0.15em] font-bold px-3 py-1"
+                            style={{
+                              color:
+                                FULFILLMENT_COLORS[order.fulfillmentStatus] ||
+                                tokens.secondary,
+                              backgroundColor: "transparent",
+                              border: `1px solid ${FULFILLMENT_COLORS[order.fulfillmentStatus] || tokens.secondary}`,
+                            }}
+                          >
+                            {FULFILLMENT_LABELS[order.fulfillmentStatus] ||
+                              order.fulfillmentStatus}
+                          </span>
+                        )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-4 mb-5">

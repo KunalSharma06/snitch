@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateUser } from '../middlewares/auth.middleware.js';
+import { authenticateUser, authenticateAdmin } from '../middlewares/auth.middleware.js';
 import { validateAddToCart, validateIncrementCartItemQuantity, validateDecrementCartItemQuantity} from '../validators/cart.validator.js';
 import {
   addToCart,
@@ -11,6 +11,9 @@ import {
   verifyOrderController,
   getUserOrders,
   cancelOrder,
+  getAllOrders,
+  getAdminOrderStats,
+  updateFulfillmentStatus
 } from "../controllers/cart.controller.js";
 
 const cartRouter = express.Router();
@@ -25,4 +28,9 @@ cartRouter.post("/payment/create/order", authenticateUser, createOrderController
 cartRouter.post("/payment/verify/order", authenticateUser, verifyOrderController);
 cartRouter.get("/orders", authenticateUser, getUserOrders);
 cartRouter.patch("/orders/:orderId/cancel", authenticateUser, cancelOrder);
+
+cartRouter.get("/admin/orders", authenticateAdmin, getAllOrders);
+cartRouter.get("/admin/stats", authenticateAdmin, getAdminOrderStats);
+
+cartRouter.patch("/admin/orders/:orderId/fulfillment", authenticateAdmin, updateFulfillmentStatus);
 export default cartRouter;

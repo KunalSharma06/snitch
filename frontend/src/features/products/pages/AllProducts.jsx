@@ -21,7 +21,7 @@ const AllProducts = () => {
 
   const loadSavedFilters = () => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = sessionStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -73,8 +73,12 @@ const AllProducts = () => {
     if (brandParam) {
       setSelectedBrands([brandParam]);
       setAppliedFilters((prev) => ({ ...prev, brands: [brandParam] }));
+      
+      // Remove it from the URL so it doesn't lock the filter state
+      searchParams.delete("brand");
+      navigate("/products", { replace: true });
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     const toSave = {
@@ -82,7 +86,7 @@ const AllProducts = () => {
       appliedSearch,
       appliedFilters,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }, [filter, appliedSearch, appliedFilters]);
 
  const productTypes = availableCategories;
@@ -163,7 +167,7 @@ const AllProducts = () => {
      setAppliedFilters({ brands: [], categories: [], priceRange: null });
      setFilter("ALL");
      setAppliedSearch("");
-     localStorage.removeItem(STORAGE_KEY);
+     sessionStorage.removeItem(STORAGE_KEY);
      setIsApplyingFilters(false);
    }, 900);
  };
@@ -490,12 +494,12 @@ const AllProducts = () => {
                         {product.title}
                       </h3>
 
-                      <div className="mt-3 flex items-center gap-2">
+                      <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
                         {product.discountedPrice?.amount ? (
                           <>
                             <span
                               className="text-[10px] uppercase tracking-[0.2em] font-medium"
-                              style={{ color: "#7A6E63" }}
+                              style={{ color: "#1b1c1a" }}
                             >
                               {product.discountedPrice.currency}{" "}
                               {product.discountedPrice.amount.toLocaleString()}
@@ -506,6 +510,12 @@ const AllProducts = () => {
                             >
                               {product.price?.currency}{" "}
                               {product.price?.amount?.toLocaleString()}
+                            </span>
+                            <span
+                              className="text-[9px] uppercase tracking-[0.2em] font-medium ml-1"
+                              style={{ color: "#ba1a1a" }}
+                            >
+                              Save {Math.round(((product.price.amount - product.discountedPrice.amount) / product.price.amount) * 100)}%
                             </span>
                           </>
                         ) : (

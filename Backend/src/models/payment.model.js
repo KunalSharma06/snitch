@@ -3,9 +3,9 @@ import priceSchema from "./price.schema.js";
 
 const paymentSchema = new mongoose.Schema(
   {
-      status: {
+    status: {
     type: String,
-    enum: ["pending", "paid", "failed", "cod_pending", "cod_delivered", "cancelled"],
+    enum: ["pending", "paid", "failed", "cod_pending", "cancelled"],
     default: "pending",
   },
   estimatedDelivery: {
@@ -16,6 +16,11 @@ const paymentSchema = new mongoose.Schema(
       enum: ["cod", "razorpay"],
       default: "razorpay",
     },
+    fulfillmentStatus: {
+    type: String,
+    enum: ["processing", "shipped", "out_for_delivery", "delivered", "cancelled"],
+    default: "processing",
+  },
     address: {
       fullName: String,
       phone: String,

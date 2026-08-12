@@ -113,6 +113,19 @@ const Nav = () => {
       ),
     },
   ];
+  if (user?.role === "admin") {
+        menuItems.push({
+            label: 'Admin Orders',
+            path: '/admin/orders',
+            icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M8 4v5" />
+                </svg>
+            ),
+        })
+    }
 
   return (
     <>
@@ -135,12 +148,20 @@ const Nav = () => {
             {user ? (
               <>
                 {user.role === "seller" ? (
-                  <Link
-                    to="/seller/dashboard"
-                    className="transition-colors hover:text-[#C9A96E]"
-                  >
-                    Seller Dashboard
-                  </Link>
+                  <div className="flex items-center gap-6">
+                    <Link
+                      to="/seller/dashboard"
+                      className="transition-colors hover:text-[#C9A96E] uppercase"
+                    >
+                      Seller Dashboard
+                    </Link>
+                    <button
+                      onClick={() => setShowLogoutModal(true)}
+                      className="transition-colors hover:text-[#C9A96E] cursor-pointer uppercase"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 ) : (
                   <>
                     <Link

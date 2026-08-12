@@ -1,6 +1,8 @@
 import productModel from "../models/product.model.js";
 import { uploadFile } from "../services/storage.service.js";
 import mongoose from "mongoose";
+import { ChatMistralAI } from "@langchain/mistralai";
+import {config} from "../config/config.js";
 
 export async function createProduct(req, res) {
   const { title, description, priceAmount, priceCurrency, productType, brand, discountedPriceAmount } = req.body;
@@ -438,5 +440,185 @@ export const deleteVariant = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Error deleting variant" });
+  }
+};
+
+export const generateProductAISummary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { variantId, question } = req.body;
+
+    const product = await productModel.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found", success: false });
+    }
+
+    if (!process.env.MISTRAL_API_KEY) {
+      return res.status(500).json({ message: "MISTRAL_API_KEY is missing", success: false });
+    }
+
+    const activeVariant = variantId
+      ? product.variants.find((v) => v._id.toString() === variantId)
+      : product.variants?.[0];
+
+    const price = activeVariant?.discountedPrice?.amount
+      ? activeVariant.discountedPrice
+      : activeVariant?.price?.amount
+        ? activeVariant.price
+        : product.discountedPrice?.amount
+          ? product.discountedPrice
+          : product.price;
+
+    const originalPrice = activeVariant?.discountedPrice?.amount
+      ? activeVariant.price
+      : product.discountedPrice?.amount
+        ? product.price
+        : null;
+
+    const priceText = originalPrice
+      ? `${price.currency} ${price.amount} (originally ${originalPrice.currency} ${originalPrice.amount})`
+      : `${price?.currency || ""} ${price?.amount || "N/A"}`;
+
+    const attributesText = activeVariant?.attributes
+      ? Object.entries(
+          activeVariant.attributes instanceof Map
+            ? Object.fromEntries(activeVariant.attributes)
+            : activeVariant.attributes
+        )
+          .filter(([key]) => key.toLowerCase() !== "size")
+          .map(([key, val]) => `${key}: ${val}`)
+          .join(", ") || "Not specified"
+      : "Not specified";
+
+    const llm = new ChatMistralAI({
+      model: "mistral-large-latest",
+      apiKey: config.MISTRAL_API_KEY,
+      maxTokens: 900,
+      temperature: 0.7,
+    });
+
+    const baseContext = `
+PRODUCT INFORMATION:
+Brand: ${product.brand || "Not specified"}
+Product Name: ${product.title || "Not specified"}
+Product Type: ${product.productType || "Not specified"}
+Selected Variant: ${attributesText}
+Description: ${product.description || "No detailed description available"}
+Price: ${priceText}
+`;
+
+    // Follow-up question mode — short, focused answer using same product context
+    if (question) {
+      const followUpPrompt = `
+You are a fashion stylist for a premium Indian clothing website. Using ONLY the product information below, answer the customer's question directly and honestly in 2-3 short sentences. Do not invent details not provided. Do not use markdown symbols such as *, **, or #.
+
+${baseContext}
+
+CUSTOMER QUESTION: ${question}
+`;
+      const response = await llm.invoke(followUpPrompt);
+      const cleanText = (text) =>
+        text
+          .replace(/\*\*(.*?)\*\*/g, "$1")
+          .replace(/\*(.*?)\*/g, "$1")
+          .replace(/#{1,6}\s?/g, "")
+          .trim();
+      return res.status(200).json({ success: true, answer: cleanText(response.content) });
+    }
+
+    // Full review mode
+    const prompt = `
+You are an expert fashion stylist and personal shopping advisor for a premium Indian clothing website.
+
+Your job is to carefully analyze the product information below — including the SPECIFIC VARIANT selected (color/size/etc if provided) — and give the customer a detailed, practical, and honest fashion recommendation for that exact variant.
+
+${baseContext}
+
+IMPORTANT RULES:
+1. Use ONLY the information provided about the product and selected variant.
+2. Do not invent fabric, color, fit, size, stretch, quality, design details, or other features that are not mentioned.
+3. If some information is not available, do not pretend that you know it.
+4. You may give general fashion-styling advice based on the product type and explicitly mentioned fit/style/variant attributes.
+5. Be honest. Do not automatically say the product is excellent or worth buying.
+6. Make the recommendation useful to someone who is actually deciding whether to buy this specific variant.
+7. Do not mention that you are an AI.
+8. Do not use markdown symbols such as *, **, #, or bullet characters.
+9. Use clear section headings followed by short paragraphs.
+10. Keep the response detailed but easy to read.
+
+COVER THESE POINTS:
+
+PRODUCT OVERVIEW:
+Explain what the product is, its overall style, appearance, and the type of fashion look it represents based only on the provided information, referencing the selected variant where relevant.
+
+STYLE & VIBE:
+Explain what kind of overall look the product can create, such as casual, smart-casual, streetwear, minimal, relaxed, trendy, formal, or versatile, but only when supported by the product information.
+
+FIT & WHO IT SUITS:
+Explain what type of person or styling preference would generally suit this product and variant.
+If the product description mentions a specific fit such as slim fit, regular fit, relaxed fit, oversized, straight fit, bootcut, skinny, or wide leg, explain what that fit means and who usually prefers it.
+Do not claim that a particular body type will definitely look good or bad in it.
+
+WHEN TO WEAR:
+Explain suitable occasions and situations for wearing this product, such as college, casual outings, shopping, dates, parties, office, travel, dinners, or everyday wear, depending on the product type and style.
+
+HOW TO STYLE:
+Give practical suggestions for styling the product.
+Explain what type of tops, bottoms, footwear, or accessories could generally pair well with it, considering the selected color/variant if mentioned.
+Do not invent exact product features that are not provided.
+
+OUTFIT IDEAS:
+Give 2 or 3 simple outfit combinations that would work well with this variant.
+
+VALUE FOR MONEY:
+Consider the listed price for this variant and the available product information.
+Explain whether it appears reasonably priced, expensive, or potentially good value based only on the information provided.
+Do not make claims about competitors or market prices unless that information is provided.
+
+FINAL VERDICT:
+Give a clear final recommendation.
+Say who should consider buying it and who may prefer another style.
+Be honest and balanced rather than always recommending the purchase.
+
+LENGTH RULES (STRICT):
+Each section must be 2 to 3 sentences maximum. Do not write long paragraphs.
+The OUTFIT IDEAS section must list exactly 2 short outfit combinations, each in a single sentence.
+The entire response must fit comfortably within 400 words total.
+Always finish every section completely. Never cut off mid-sentence.
+
+IMPORTANT:
+Do not repeat the same information in different sections.
+Do not make the response unnecessarily complicated.
+Use a premium, stylish, natural tone suitable for a modern fashion e-commerce website.
+`;
+
+    const cleanText = (text) =>
+      text
+        .replace(/\*\*(.*?)\*\*/g, "$1") // remove **bold**
+        .replace(/\*(.*?)\*/g, "$1")     // remove *italic*
+        .replace(/#{1,6}\s?/g, "")        // remove markdown headers
+        .trim();
+
+    const response = await llm.invoke(prompt);
+    const cleanedSummary = cleanText(response.content);
+
+    // A few relevant follow-up prompts for the UI to show as chips
+    const suggestedQuestions = [
+      "Is this good for daily wear?",
+      "What footwear pairs well with this?",
+      "Is this worth the price?",
+      "Who should avoid this style?",
+    ];
+
+    return res.status(200).json({
+      success: true,
+      summary: cleanedSummary,
+      suggestedQuestions,
+    });
+
+  } catch (error) {
+    console.error("AI Summary Error:", error);
+    return res.status(500).json({ message: "Could not generate AI summary", success: false });
   }
 };

@@ -1,5 +1,4 @@
 import { createClient } from "redis";
-import { config } from "../config/config.js";
 import crypto from "crypto";
 
 class OTPService {

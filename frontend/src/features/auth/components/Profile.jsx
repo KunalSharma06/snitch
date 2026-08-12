@@ -408,19 +408,19 @@ const Profile = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-2xl mx-auto px-8 lg:px-16 pt-12 lg:pt-16">
+        <div className="max-w-2xl mx-auto px-8 lg:px-16 pt-8 lg:pt-10">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-6 text-[10px] uppercase tracking-[0.2em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -439,16 +439,16 @@ const Profile = () => {
           >
             Your Profile
           </h1>
-          <p className="text-sm mb-10" style={{ color: tokens.secondary }}>
+          <p className="text-[11px] uppercase tracking-[0.2em] mb-10" style={{ color: tokens.secondary }}>
             Manage your personal information
           </p>
 
           {/* Personal Information */}
           <div
-            className="p-8"
+            className="p-8 md:p-10 rounded-sm transition-all duration-300"
             style={{
               backgroundColor: tokens.surfaceLowest,
-              boxShadow: "0 10px 30px rgba(27,28,26,0.04)",
+              border: `1px solid ${tokens.surfaceHighest}`,
             }}
           >
             <div className="flex items-center justify-between mb-8">
@@ -621,10 +621,10 @@ const Profile = () => {
 
           {/* Delivery Addresses */}
           <div
-            className="mt-6 p-8"
+            className="mt-6 p-8 md:p-10 rounded-sm transition-all duration-300"
             style={{
               backgroundColor: tokens.surfaceLowest,
-              boxShadow: "0 10px 30px rgba(27,28,26,0.04)",
+              border: `1px solid ${tokens.surfaceHighest}`,
             }}
           >
             <div className="flex items-center justify-between mb-6">

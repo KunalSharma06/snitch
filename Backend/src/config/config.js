@@ -64,6 +64,12 @@ if (!process.env.REDIS_PASSWORD) {
   throw new Error("REDIS_PASSWORD is not defined in the environment variables");
 }
 
+if (!process.env.MISTRAL_API_KEY) {
+  throw new Error(
+    "MISTRAL_API_KEY is not defined in the environment variables",
+  );
+}
+
 export const config = {
   MONGO_URI: process.env.MONGO_URI,
   JWT_SECRET: process.env.JWT_SECRET,
@@ -81,4 +87,5 @@ export const config = {
   REDIS_PORT: process.env.REDIS_PORT || 6379,
   REDIS_USERNAME: process.env.REDIS_USERNAME || "default",
   REDIS_PASSWORD: process.env.REDIS_PASSWORD || "",
+  MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
 };

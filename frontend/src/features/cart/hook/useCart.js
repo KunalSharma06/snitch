@@ -71,5 +71,5 @@ export const useCart = () => {
     return data;
   }
 
-  return { handleAddItem, handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder, handleGetUserOrders, handleCancelOrder };
+  return { handleAddItem, handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder, handleGetUserOrders, handleCancelOrder};
 }

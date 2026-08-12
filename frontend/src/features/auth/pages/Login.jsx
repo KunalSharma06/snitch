@@ -12,6 +12,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [toastError, setToastError] = useState("");
+
+  const showToast = (message) => {
+    setToastError(message);
+    setTimeout(() => {
+      setToastError("");
+    }, 4000);
+  };
 
   const [formData, setFormData] = useState({
     email: "",
@@ -45,6 +53,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Login failed", error);
+      showToast(error?.response?.data?.message || "Invalid email or password");
     }
   };
 
@@ -181,6 +190,25 @@ const Login = () => {
           fontFamily: "'Inter', sans-serif",
         }}
       >
+        {/* Toast Notification */}
+        {toastError && (
+          <div className="fixed top-12 right-12 z-[9999] px-8 py-5 flex items-center gap-4 animate-slide-in-right"
+               style={{
+                 backgroundColor: "#fbf9f6",
+                 border: "1px solid #e4e2df",
+                 boxShadow: "0 20px 40px rgba(27,28,26,0.08)",
+               }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ba1a1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium" style={{ color: "#ba1a1a" }}>
+              {toastError}
+            </span>
+          </div>
+        )}
+
         {/* ── LEFT: Editorial Image Panel ── */}
         <div
           className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
@@ -825,6 +853,16 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right {
+          animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
     </>
   );
 };

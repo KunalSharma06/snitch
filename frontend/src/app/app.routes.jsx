@@ -17,6 +17,7 @@ import Checkout from "../features/cart/pages/Checkout";
 import Orders from "../features/cart/pages/Orders";
 import Profile from "../features/auth/components/Profile";
 import Favourites from "../features/favourites/pages/Favourites";
+import AdminOrders from "../features/admin/pages/AdminOrders";
 
 export const routes = createBrowserRouter([
   {
@@ -71,6 +72,14 @@ export const routes = createBrowserRouter([
         element: (
           <Protected>
             <Favourites />
+          </Protected>
+        ),
+      },
+      {
+        path: "/admin/orders",
+        element: (
+          <Protected role="admin">
+            <AdminOrders />
           </Protected>
         ),
       },
