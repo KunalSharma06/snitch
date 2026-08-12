@@ -82,3 +82,8 @@ export async function updateFulfillmentStatusApi(orderId, fulfillmentStatus) {
   const res = await cartApiInstance.patch(`/admin/orders/${orderId}/fulfillment`, { fulfillmentStatus });
   return res.data;
 }
+
+export async function getAnalyticsApi(range) {
+  const res = await cartApiInstance.get("/admin/analytics", { params: { range } });
+  return res.data;
+}

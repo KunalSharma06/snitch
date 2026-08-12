@@ -13,7 +13,8 @@ import {
   cancelOrder,
   getAllOrders,
   getAdminOrderStats,
-  updateFulfillmentStatus
+  updateFulfillmentStatus,
+  getAnalytics
 } from "../controllers/cart.controller.js";
 
 const cartRouter = express.Router();
@@ -33,4 +34,6 @@ cartRouter.get("/admin/orders", authenticateAdmin, getAllOrders);
 cartRouter.get("/admin/stats", authenticateAdmin, getAdminOrderStats);
 
 cartRouter.patch("/admin/orders/:orderId/fulfillment", authenticateAdmin, updateFulfillmentStatus);
+
+cartRouter.get("/admin/analytics", authenticateAdmin, getAnalytics);
 export default cartRouter;

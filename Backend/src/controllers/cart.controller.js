@@ -677,6 +677,147 @@ export const updateFulfillmentStatus = async (req, res) => {
   }
 };
 
+export const getAnalytics = async (req, res) => {
+  try {
+    const { range = "30" } = req.query; // days: 7, 30, 90
+    const days = Number(range);
+
+    const now = new Date();
+    const periodStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const previousPeriodStart = new Date(
+      now.getTime() - days * 2 * 24 * 60 * 60 * 1000,
+    );
+
+    const buildRevenueMatch = (start, end) => ({
+      createdAt: { $gte: start, $lt: end },
+      status: { $in: ["paid", "cod_pending"] },
+    });
+
+    const [
+      currentRevenue,
+      previousRevenue,
+      currentOrderCount,
+      previousOrderCount,
+      revenueByDay,
+      ordersByFulfillment,
+      topProducts,
+      signupsByDay,
+      currentSignups,
+      previousSignups,
+    ] = await Promise.all([
+      paymentModel.aggregate([
+        { $match: buildRevenueMatch(periodStart, now) },
+        { $group: { _id: null, total: { $sum: "$price.amount" } } },
+      ]),
+      paymentModel.aggregate([
+        { $match: buildRevenueMatch(previousPeriodStart, periodStart) },
+        { $group: { _id: null, total: { $sum: "$price.amount" } } },
+      ]),
+      paymentModel.countDocuments(buildRevenueMatch(periodStart, now)),
+      paymentModel.countDocuments(
+        buildRevenueMatch(previousPeriodStart, periodStart),
+      ),
+      paymentModel.aggregate([
+        { $match: buildRevenueMatch(periodStart, now) },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            revenue: { $sum: "$price.amount" },
+            orders: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+      paymentModel.aggregate([
+        { $match: { createdAt: { $gte: periodStart } } },
+        { $group: { _id: "$fulfillmentStatus", count: { $sum: 1 } } },
+      ]),
+      paymentModel.aggregate([
+        { $match: { createdAt: { $gte: periodStart } } },
+        { $unwind: "$orderItems" },
+        {
+          $group: {
+            _id: "$orderItems.title",
+            totalSold: { $sum: "$orderItems.quantity" },
+            revenue: {
+              $sum: {
+                $multiply: ["$orderItems.quantity", "$orderItems.price.amount"],
+              },
+            },
+          },
+        },
+        { $sort: { totalSold: -1 } },
+        { $limit: 5 },
+      ]),
+      userModel.aggregate([
+        { $match: { createdAt: { $gte: periodStart } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+      userModel.countDocuments({ createdAt: { $gte: periodStart } }),
+      userModel.countDocuments({
+        createdAt: { $gte: previousPeriodStart, $lt: periodStart },
+      }),
+    ]);
+
+    const currentRev = currentRevenue[0]?.total || 0;
+    const prevRev = previousRevenue[0]?.total || 0;
+    const revenueChange =
+      prevRev === 0
+        ? currentRev > 0
+          ? 100
+          : 0
+        : ((currentRev - prevRev) / prevRev) * 100;
+
+    const orderChange =
+      previousOrderCount === 0
+        ? currentOrderCount > 0
+          ? 100
+          : 0
+        : ((currentOrderCount - previousOrderCount) / previousOrderCount) * 100;
+
+    const signupChange =
+      previousSignups === 0
+        ? currentSignups > 0
+          ? 100
+          : 0
+        : ((currentSignups - previousSignups) / previousSignups) * 100;
+
+    const avgOrderValue =
+      currentOrderCount > 0 ? currentRev / currentOrderCount : 0;
+
+    return res.status(200).json({
+      success: true,
+      range: days,
+      revenue: {
+        current: currentRev,
+        change: Math.round(revenueChange * 10) / 10,
+      },
+      orders: {
+        current: currentOrderCount,
+        change: Math.round(orderChange * 10) / 10,
+      },
+      signups: {
+        current: currentSignups,
+        change: Math.round(signupChange * 10) / 10,
+      },
+      avgOrderValue: Math.round(avgOrderValue),
+      revenueByDay,
+      ordersByFulfillment,
+      topProducts,
+      signupsByDay,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching analytics" });
+  }
+};
+
 // export const createOrderController = async (req, res) => {
 
 //   const cart = await getCartDetails(req.user._id);

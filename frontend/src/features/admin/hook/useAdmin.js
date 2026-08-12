@@ -1,4 +1,4 @@
-import { getAllOrdersApi, getAdminStatsApi, updateFulfillmentStatusApi } from "../../cart/service/cart.api.js";
+import { getAllOrdersApi, getAdminStatsApi, updateFulfillmentStatusApi, getAnalyticsApi} from "../../cart/service/cart.api.js";
 
 export const useAdmin = () => {
   async function handleGetAllOrders(params) {
@@ -16,5 +16,10 @@ export const useAdmin = () => {
     return data;
   }
 
-  return { handleGetAllOrders, handleUpdateFulfillmentStatus, handleGetAdminStats };
+  async function handleGetAnalytics(range) {
+    const data = await getAnalyticsApi(range);
+    return data;
+  }
+
+  return { handleGetAllOrders, handleUpdateFulfillmentStatus, handleGetAdminStats, handleGetAnalytics };
 };

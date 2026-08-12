@@ -13,11 +13,12 @@ const PRICE_RANGES = [
 
 const AllProducts = () => {
   const products = useSelector((state) => state.product.products);
-  const { handleGetAllProducts, handleGetFilterOptions } = useProduct();
+  const { handleGetAllProducts, handleGetFilterOptions, handleSearchProducts } =
+    useProduct();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
- const STORAGE_KEY = "snitch_product_filters";
+  const STORAGE_KEY = "snitch_product_filters";
 
   const loadSavedFilters = () => {
     try {
@@ -33,18 +34,26 @@ const AllProducts = () => {
   const [filter, setFilter] = useState(saved?.filter || "ALL");
   const [hoveredId, setHoveredId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState(saved?.appliedSearch || "");
+  const [appliedSearch, setAppliedSearch] = useState(
+    saved?.appliedSearch || "",
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // ── Filter panel state ──
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState(saved?.appliedFilters?.brands || []);
-  const [selectedCategories, setSelectedCategories] = useState(saved?.appliedFilters?.categories || []);
-  const [selectedPriceRange, setSelectedPriceRange] = useState(saved?.appliedFilters?.priceRange || null);
+  const [selectedBrands, setSelectedBrands] = useState(
+    saved?.appliedFilters?.brands || [],
+  );
+  const [selectedCategories, setSelectedCategories] = useState(
+    saved?.appliedFilters?.categories || [],
+  );
+  const [selectedPriceRange, setSelectedPriceRange] = useState(
+    saved?.appliedFilters?.priceRange || null,
+  );
 
   const [appliedFilters, setAppliedFilters] = useState(
-    saved?.appliedFilters || { brands: [], categories: [], priceRange: null }
+    saved?.appliedFilters || { brands: [], categories: [], priceRange: null },
   );
 
   const [availableCategories, setAvailableCategories] = useState([]);
@@ -73,7 +82,7 @@ const AllProducts = () => {
     if (brandParam) {
       setSelectedBrands([brandParam]);
       setAppliedFilters((prev) => ({ ...prev, brands: [brandParam] }));
-      
+
       // Remove it from the URL so it doesn't lock the filter state
       searchParams.delete("brand");
       navigate("/products", { replace: true });
@@ -89,24 +98,61 @@ const AllProducts = () => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }, [filter, appliedSearch, appliedFilters]);
 
- const productTypes = availableCategories;
- const brands = availableBrands;
+  const productTypes = availableCategories;
+  const brands = availableBrands;
 
-  const matchesQuery = (p, query) => {
-    const combined =
-      `${p.title} ${p.brand || ""} ${p.productType || ""}`.toLowerCase();
-    const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    return words.every((word) => combined.includes(word));
-  };
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounceRef = React.useRef(null);
 
-  const searchSuggestions = (products || [])
-    .filter((p) => matchesQuery(p, searchQuery))
-    .slice(0, 5);
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
 
-  const filtered = products?.filter((p) => {
-      const matchesFilter = filter === "ALL" || p.productType === filter;
-      const matchesSearch =
-        appliedSearch.trim() === "" || matchesQuery(p, appliedSearch);
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const results = await handleSearchProducts(searchQuery.trim());
+        setSearchSuggestions(results.slice(0, 5));
+      } catch (err) {
+        console.error("Search failed", err);
+        setSearchSuggestions([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [searchQuery]);
+
+  const [appliedSearchResults, setAppliedSearchResults] = useState(null);
+
+  useEffect(() => {
+    if (!appliedSearch.trim()) {
+      setAppliedSearchResults(null);
+      return;
+    }
+    async function runSearch() {
+      try {
+        const results = await handleSearchProducts(appliedSearch.trim());
+        setAppliedSearchResults(results);
+      } catch (err) {
+        console.error("Search failed", err);
+        setAppliedSearchResults([]);
+      }
+    }
+    runSearch();
+  }, [appliedSearch]);
+
+  const baseList =
+    appliedSearch.trim() !== "" ? appliedSearchResults || [] : products;
+
+  const filtered = baseList?.filter((p) => {
+    const matchesFilter = filter === "ALL" || p.productType === filter;
 
     const matchesBrand =
       appliedFilters.brands.length === 0 ||
@@ -121,13 +167,7 @@ const AllProducts = () => {
       (p.price?.amount >= appliedFilters.priceRange.min &&
         p.price?.amount < appliedFilters.priceRange.max);
 
-    return (
-      matchesFilter &&
-      matchesSearch &&
-      matchesBrand &&
-      matchesCategory &&
-      matchesPrice
-    );
+    return matchesFilter && matchesBrand && matchesCategory && matchesPrice;
   });
 
   const toggleBrand = (brand) => {
@@ -156,21 +196,21 @@ const AllProducts = () => {
     }, 900);
   };
 
- const handleResetFilters = () => {
-   setIsFilterOpen(false);
-   setIsApplyingFilters(true);
+  const handleResetFilters = () => {
+    setIsFilterOpen(false);
+    setIsApplyingFilters(true);
 
-   setTimeout(() => {
-     setSelectedBrands([]);
-     setSelectedCategories([]);
-     setSelectedPriceRange(null);
-     setAppliedFilters({ brands: [], categories: [], priceRange: null });
-     setFilter("ALL");
-     setAppliedSearch("");
-     sessionStorage.removeItem(STORAGE_KEY);
-     setIsApplyingFilters(false);
-   }, 900);
- };
+    setTimeout(() => {
+      setSelectedBrands([]);
+      setSelectedCategories([]);
+      setSelectedPriceRange(null);
+      setAppliedFilters({ brands: [], categories: [], priceRange: null });
+      setFilter("ALL");
+      setAppliedSearch("");
+      sessionStorage.removeItem(STORAGE_KEY);
+      setIsApplyingFilters(false);
+    }, 900);
+  };
 
   const activeFilterCount =
     appliedFilters.brands.length +
@@ -233,7 +273,7 @@ const AllProducts = () => {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setShowSuggestions(false)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -244,8 +284,16 @@ const AllProducts = () => {
                   }
                 }}
                 placeholder="Search the collection..."
-                className="w-full bg-transparent border border-[#e4e2df] py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#1b1c1a] transition-colors placeholder:text-[#7A6E63]/60 font-light"
-                style={{ color: "#1b1c1a" }}
+                className="w-full bg-transparent border py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all duration-200 placeholder:text-[#7A6E63]/60 font-light"
+                style={{
+                  color: "#1b1c1a",
+                  borderColor:
+                    showSuggestions && searchQuery ? "#C9A96E" : "#e4e2df",
+                  boxShadow:
+                    showSuggestions && searchQuery
+                      ? "0 4px 16px rgba(201,169,110,0.15)"
+                      : "none",
+                }}
               />
               {searchQuery && (
                 <button
@@ -275,38 +323,74 @@ const AllProducts = () => {
 
             {showSuggestions && searchQuery.trim() !== "" && (
               <div
-                className="absolute top-full left-0 right-0 mt-1 border border-[#e4e2df] shadow-lg overflow-hidden"
-                style={{ backgroundColor: "#fbf9f6" }}
+                className="absolute top-full left-0 right-0 mt-2 border overflow-hidden animate-fade-in-down"
+                style={{
+                  backgroundColor: "#fbf9f6",
+                  borderColor: "#e4e2df",
+                  boxShadow: "0 12px 32px rgba(27,28,26,0.1)",
+                }}
               >
-                {searchSuggestions.length > 0 ? (
-                  searchSuggestions.map((prod) => (
+                {searchLoading ? (
+                  <div className="px-5 py-6 flex items-center justify-center gap-2">
                     <div
-                      key={prod._id}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setSearchQuery("");
-                        setAppliedSearch("");
-                        setShowSuggestions(false);
-                        navigate(`/product/${prod._id}`);
+                      className="w-3.5 h-3.5 border-2 rounded-full animate-spin"
+                      style={{
+                        borderColor: "#e4e2df",
+                        borderTopColor: "#C9A96E",
                       }}
-                      className="px-5 py-3 hover:bg-[#f5f3f0] cursor-pointer flex items-center justify-between transition-colors border-b border-[#e4e2df]/50 last:border-0"
+                    />
+                    <span
+                      className="text-[11px] uppercase tracking-wider"
+                      style={{ color: "#B5ADA3" }}
                     >
-                      <span
-                        className="text-sm line-clamp-1"
-                        style={{ color: "#1b1c1a" }}
+                      Searching...
+                    </span>
+                  </div>
+                ) : searchSuggestions.length > 0 ? (
+                  searchSuggestions.map((prod) => {
+                    const thumb =
+                      prod.images?.[0]?.url || "/snitch_editorial_warm.png";
+                    return (
+                      <div
+                        key={prod._id}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearchQuery("");
+                          setAppliedSearch("");
+                          setShowSuggestions(false);
+                          navigate(`/product/${prod._id}`);
+                        }}
+                        className="px-5 py-3 hover:bg-[#f5f3f0] cursor-pointer flex items-center gap-3 transition-colors border-b border-[#e4e2df]/50 last:border-0"
                       >
-                        {prod.title}
-                      </span>
-                      <span
-                        className="text-[9px] uppercase tracking-[0.1em] shrink-0 ml-4"
-                        style={{ color: "#C9A96E" }}
-                      >
-                        {prod.brand && prod.brand !== "Unbranded"
-                          ? prod.brand
-                          : prod.productType}
-                      </span>
-                    </div>
-                  ))
+                        <div
+                          className="w-9 h-11 flex-shrink-0 overflow-hidden"
+                          style={{ backgroundColor: "#e4e2df" }}
+                        >
+                          <img
+                            src={thumb}
+                            alt={prod.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                          <span
+                            className="text-sm line-clamp-1"
+                            style={{ color: "#1b1c1a" }}
+                          >
+                            {prod.title}
+                          </span>
+                          <span
+                            className="text-[9px] uppercase tracking-[0.1em] shrink-0"
+                            style={{ color: "#C9A96E" }}
+                          >
+                            {prod.brand && prod.brand !== "Unbranded"
+                              ? prod.brand
+                              : prod.productType}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div
                     className="px-5 py-6 text-center text-sm"
@@ -515,7 +599,14 @@ const AllProducts = () => {
                               className="text-[9px] uppercase tracking-[0.2em] font-medium ml-1"
                               style={{ color: "#ba1a1a" }}
                             >
-                              Save {Math.round(((product.price.amount - product.discountedPrice.amount) / product.price.amount) * 100)}%
+                              Save{" "}
+                              {Math.round(
+                                ((product.price.amount -
+                                  product.discountedPrice.amount) /
+                                  product.price.amount) *
+                                  100,
+                              )}
+                              %
                             </span>
                           </>
                         ) : (
@@ -739,6 +830,16 @@ const AllProducts = () => {
           </div>
         </>
       )}
+
+      <style>{`
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+          animation: fadeInDown 0.2s ease-out;
+        }
+      `}</style>
     </>
   );
 };

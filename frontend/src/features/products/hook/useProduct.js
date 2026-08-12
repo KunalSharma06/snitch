@@ -2,7 +2,7 @@ import {
   createProduct, getSellerProduct, getAllProducts, getProductDetail, 
   addProductVariant, updateVariantStock, updateProduct, updateVariantApi,
   deleteProduct, deleteVariant, getSimilarProducts, getFeaturedProducts,
-  getFilterOptions
+  getFilterOptions, searchProductsApi
 } from "../service/product.api.js"
 import { useDispatch } from "react-redux";
 import { setSellerProducts, setProducts } from "../state/product.slice.js";
@@ -78,11 +78,16 @@ export const useProduct = () => {
     return data;
   }
 
+  async function handleSearchProducts(query) {
+    const data = await searchProductsApi(query);
+    return data.products;
+  }
+
   return { 
     handleCreateProduct, handleGetSellerProduct, handleGetAllProducts, 
     handleGetProductById, handleGetSimilarProducts, handleAddProductVariant, 
     handleUpdateVariantStock, handleUpdateProduct, handleUpdateVariant,
     handleDeleteProduct, handleDeleteVariant, handleGetFeaturedProducts,
-    handleGetFilterOptions
+    handleGetFilterOptions, handleSearchProducts
   };
 }

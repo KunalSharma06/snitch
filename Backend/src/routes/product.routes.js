@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticateSeller } from '../middlewares/auth.middleware.js';
-import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant, getFeaturedProducts, getFilterOptions, generateProductAISummary} from '../controllers/product.controller.js';
+import { addProductVariant, createProduct, getAllProducts, getProductDetail, getSimilarProducts, getSellerProducts, updateVariantStock, updateProduct, updateVariant, deleteProduct, deleteVariant, getFeaturedProducts, getFilterOptions, generateProductAISummary, searchProducts} from '../controllers/product.controller.js';
 import multer from 'multer';
 import { createProductValidator } from '../validators/product.validator.js';
 
@@ -27,6 +27,8 @@ productRouter.delete("/:productId", authenticateSeller, deleteProduct);
 productRouter.delete("/:productId/variants/:variantId", authenticateSeller, deleteVariant);
 productRouter.get("/filter-options", getFilterOptions);
 productRouter.post("/:id/ai-summary", generateProductAISummary);
+
+productRouter.get("/search", searchProducts);
 
 
 export default productRouter;

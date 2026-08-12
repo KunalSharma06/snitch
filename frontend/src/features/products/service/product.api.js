@@ -116,3 +116,8 @@ export async function getFilterOptions() {
   const res = await productApiInstance.get("/filter-options");
   return res.data;
 }
+
+export const searchProductsApi = async (query) => {
+  const res = await productApiInstance.get("/search", { params: { q: query } });
+  return res.data;
+};

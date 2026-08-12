@@ -18,6 +18,7 @@ import Orders from "../features/cart/pages/Orders";
 import Profile from "../features/auth/components/Profile";
 import Favourites from "../features/favourites/pages/Favourites";
 import AdminOrders from "../features/admin/pages/AdminOrders";
+import AdminAnalytics from "../features/admin/pages/AdminAnalytics";
 
 export const routes = createBrowserRouter([
   {
@@ -80,6 +81,14 @@ export const routes = createBrowserRouter([
         element: (
           <Protected role="admin">
             <AdminOrders />
+          </Protected>
+        ),
+      },
+      {
+        path: "/admin/analytics",
+        element: (
+          <Protected role="admin">
+            <AdminAnalytics />
           </Protected>
         ),
       },

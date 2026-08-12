@@ -2,7 +2,8 @@ import productModel from "../models/product.model.js";
 import { uploadFile } from "../services/storage.service.js";
 import mongoose from "mongoose";
 import { ChatMistralAI } from "@langchain/mistralai";
-import {config} from "../config/config.js";
+import { config } from "../config/config.js";
+import Fuse from "fuse.js";
 
 export async function createProduct(req, res) {
   const { title, description, priceAmount, priceCurrency, productType, brand, discountedPriceAmount } = req.body;
@@ -38,6 +39,53 @@ export async function createProduct(req, res) {
     success: true,
     product,
   });
+}
+
+
+export const searchProducts = async (req, res) => {
+  const { q } = req.query;
+  const query = q?.trim();
+
+  if (!query) {
+    return res.status(200).json({ success: true, products: [] });
+  }
+
+  try {
+    const allProducts = await productModel.find({});
+
+    const lowerQuery = query.toLowerCase();
+
+    // Step 1: exact/substring match first (precise, fast, handles correctly spelled queries)
+    const exactMatches = allProducts.filter((p) => {
+      const haystack = `${p.title} ${p.brand} ${p.productType}`.toLowerCase();
+      return haystack.includes(lowerQuery);
+    });
+
+    if (exactMatches.length > 0) {
+      return res.status(200).json({
+        success: true,
+        products: exactMatches.slice(0, 30),
+      });
+    }
+
+    // Step 2: no exact match found — likely a typo, use fuzzy search
+    const fuse = new Fuse(allProducts, {
+      keys: ["title", "brand", "productType"],
+      threshold: 0.4,
+      ignoreLocation: true,
+    });
+
+    const fuzzyResults = fuse.search(query);
+    const products = fuzzyResults.slice(0, 30).map((r) => r.item);
+
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (err) {
+    console.error("Search error:", err);
+    return res.status(500).json({ message: "Error searching products" });
+  }
 }
 
 export async function getSellerProducts(req, res) {
