@@ -184,13 +184,30 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    const redisClient = otpService.client;
+    const failKey = `login-fails:${email.toLowerCase()}`;
+
+    const failCount = await redisClient.get(failKey);
+    const currentFails = failCount ? Number(failCount) : 0;
+
     const user = await userModel.findOne({ email });
 
     if (!user) {
+      if (currentFails >= 5) {
+        const ttl = await redisClient.ttl(failKey);
+        const minutes = Math.ceil(ttl / 60);
+        return res.status(429).json({
+          message: `Too many failed attempts. Please try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+        });
+      }
+      await redisClient
+        .multi()
+        .incr(failKey)
+        .expire(failKey, 15 * 60)
+        .exec();
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Check if email is verified
     if (!user.isEmailVerified) {
       return res.status(403).json({
         message: "Please verify your email first. Request OTP to continue.",
@@ -201,10 +218,24 @@ export const loginUser = async (req, res) => {
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
+      if (currentFails >= 5) {
+        const ttl = await redisClient.ttl(failKey);
+        const minutes = Math.ceil(ttl / 60);
+        return res.status(429).json({
+          message: `Too many failed attempts. Please try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+        });
+      }
+      await redisClient
+        .multi()
+        .incr(failKey)
+        .expire(failKey, 15 * 60)
+        .exec();
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Auto-promote to admin if email is whitelisted
+    // Correct password — always succeeds, regardless of prior fail count
+    await redisClient.del(failKey);
+
     const adminEmails = getAdminEmails();
     if (
       adminEmails.includes(user.email.toLowerCase()) &&

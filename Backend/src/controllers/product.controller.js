@@ -52,10 +52,8 @@ export const searchProducts = async (req, res) => {
 
   try {
     const allProducts = await productModel.find({});
-
     const lowerQuery = query.toLowerCase();
 
-    // Step 1: exact/substring match first (precise, fast, handles correctly spelled queries)
     const exactMatches = allProducts.filter((p) => {
       const haystack = `${p.title} ${p.brand} ${p.productType}`.toLowerCase();
       return haystack.includes(lowerQuery);
@@ -68,14 +66,24 @@ export const searchProducts = async (req, res) => {
       });
     }
 
-    // Step 2: no exact match found — likely a typo, use fuzzy search
+    console.log("=== TOTAL PRODUCTS FOR FUZZY:", allProducts.length);
+    console.log(
+      "=== SAMPLE TITLES:",
+      allProducts.slice(0, 5).map((p) => p.title),
+    );
+
+    // MINIMAL config — just default Fuse.js behavior, no tuning
     const fuse = new Fuse(allProducts, {
-      keys: ["title", "brand", "productType"],
-      threshold: 0.4,
-      ignoreLocation: true,
+      keys: ["title"],
+      includeScore: true,
     });
 
     const fuzzyResults = fuse.search(query);
+    console.log("=== RAW FUZZY RESULTS for:", query, "===");
+    console.log(
+      fuzzyResults.map((r) => ({ title: r.item.title, score: r.score })),
+    );
+
     const products = fuzzyResults.slice(0, 30).map((r) => r.item);
 
     return res.status(200).json({
@@ -86,7 +94,7 @@ export const searchProducts = async (req, res) => {
     console.error("Search error:", err);
     return res.status(500).json({ message: "Error searching products" });
   }
-}
+};
 
 export async function getSellerProducts(req, res) {
   const seller = req.user;

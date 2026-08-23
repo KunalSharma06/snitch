@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useCart } from "../hook/useCart";
 import { useNavigate } from "react-router";
+import { socket } from "../../../lib/socket";
 
 const tokens = {
   surface: "#fbf9f6",
@@ -66,10 +67,30 @@ const Orders = () => {
       setLoading(false);
     }
   };
+useEffect(() => {
+  fetchOrders();
+}, []);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+useEffect(() => {
+  const handleOrderUpdate = (data) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order._id === data.orderId
+          ? {
+              ...order,
+              fulfillmentStatus: data.fulfillmentStatus,
+              status: data.status,
+            }
+          : order,
+      ),
+    );
+  };
+  socket.on("orderStatusUpdated", handleOrderUpdate);
+
+  return () => {
+    socket.off("orderStatusUpdated", handleOrderUpdate);
+  };
+}, []);
 
   const canCancel = (order) => {
     if (["cancelled", "cod_delivered", "failed"].includes(order.status))

@@ -19,6 +19,7 @@ import Profile from "../features/auth/components/Profile";
 import Favourites from "../features/favourites/pages/Favourites";
 import AdminOrders from "../features/admin/pages/AdminOrders";
 import AdminAnalytics from "../features/admin/pages/AdminAnalytics";
+import AdminSupport from "../features/admin/pages/AdminSupport";
 
 export const routes = createBrowserRouter([
   {
@@ -73,6 +74,14 @@ export const routes = createBrowserRouter([
         element: (
           <Protected>
             <Favourites />
+          </Protected>
+        ),
+      },
+      {
+        path: "/admin/support",
+        element: (
+          <Protected role="admin">
+            <AdminSupport />
           </Protected>
         ),
       },

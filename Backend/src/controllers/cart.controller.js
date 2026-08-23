@@ -666,6 +666,13 @@ export const updateFulfillmentStatus = async (req, res) => {
 
     await order.save();
 
+    const io = req.app.get("io");
+    io.to(order.user.toString()).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
+      fulfillmentStatus: order.fulfillmentStatus,
+      status: order.status,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Fulfillment status updated",

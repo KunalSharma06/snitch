@@ -10,6 +10,8 @@ import { config } from './config/config.js';
 import productRouter from './routes/product.routes.js';
 import cartRouter from './routes/cart.routes.js';
 import favouriteRouter from './routes/favourite.routes.js';
+import { generalLimiter } from "./middlewares/rate.middleware.js";
+import helpRouter from "./routes/help.routes.js";
 
 const app = express();
 app.use(
@@ -24,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(generalLimiter);
 
 app.use(passport.initialize());
 
@@ -39,5 +42,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/favourites", favouriteRouter);
+app.use("/api/help", helpRouter);
 
 export default app;

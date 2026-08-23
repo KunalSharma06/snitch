@@ -4,6 +4,7 @@ import { Outlet } from "react-router";
 import ScrollToTop from "../features/Shared/Components/ScrollToTop";
 import { useFavourites } from "../features/favourites/hook/useFavourites";
 import { useSelector } from "react-redux";
+import { socket } from "../lib/socket";
 
 
 const AppLayout = () => {
@@ -20,7 +21,17 @@ const AppLayout = () => {
   useEffect(() => {
     if (user) {
       handleLoadFavouriteIds();
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit("join", user.id || user._id);
     }
+
+    return () => {
+      if (!user && socket.connected) {
+        socket.disconnect();
+      }
+    };
   }, [user]);
 
   return (

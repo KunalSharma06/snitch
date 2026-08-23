@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router";
 import { useAuth } from "../../auth/hook/useAuth.js";
+import HelpPanel from "../../help/components/HelpPanel.jsx";
 
 const Nav = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const Nav = () => {
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [showHelpPanel, setShowHelpPanel] = useState(false);
 
   const menuItems = [
     {
@@ -112,30 +114,89 @@ const Nav = () => {
         </svg>
       ),
     },
+    {
+      label: "Help",
+      action: () => {
+        setShowDrawer(false);
+        setShowHelpPanel(true);
+      },
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    },
   ];
   if (user?.role === "admin") {
-        menuItems.push({
-            label: 'Admin Orders',
-            path: '/admin/orders',
-            icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="16" rx="2" />
-                    <path d="M3 9h18" />
-                    <path d="M8 4v5" />
-                </svg>
-            ),
-        })
-    
     menuItems.push({
-            label: 'Analytics',
-            path: '/admin/analytics',
-            icon: (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 3v18h18" />
-                    <path d="M18 9l-5 5-3-3-4 4" />
-                </svg>
-            ),
-        })
+      label: "Users Orders",
+      path: "/admin/orders",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M8 4v5" />
+        </svg>
+      ),
+    });
+
+    menuItems.push({
+      label: "Analytics",
+      path: "/admin/analytics",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 3v18h18" />
+          <path d="M18 9l-5 5-3-3-4 4" />
+        </svg>
+      ),
+    });
+    menuItems.push({
+      label: "Support Inbox",
+      path: "/admin/support",
+      icon: (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+    });
   }
 
   return (
@@ -317,41 +378,60 @@ const Nav = () => {
 
             {/* Menu items */}
             <div className="flex-1 px-4 py-6">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setShowDrawer(false)}
-                  className="flex items-center gap-4 px-4 py-4 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors hover:bg-[#f5f3f0]"
-                  style={{ color: "#1b1c1a" }}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
+              {menuItems.map((item) =>
+                item.action ? (
+                  <button
+                    key={item.label}
+                    onClick={item.action}
+                    className="w-full flex items-center gap-4 px-4 py-4 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors hover:bg-[#f5f3f0] cursor-pointer text-left"
+                    style={{ color: "#1b1c1a" }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setShowDrawer(false)}
+                    className="flex items-center gap-4 px-4 py-4 text-[11px] uppercase tracking-[0.15em] font-medium transition-colors hover:bg-[#f5f3f0]"
+                    style={{ color: "#1b1c1a" }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                ),
+              )}
             </div>
 
             {/* Logout — pinned at bottom, brand-styled, centered text */}
-                        <div className="px-6 pb-8 pt-4 border-t" style={{ borderColor: '#e4e2df' }}>
-                            <button
-                                onClick={() => {
-                                    setShowDrawer(false)
-                                    setShowLogoutModal(true)
-                                }}
-                                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium cursor-pointer transition-all duration-300"
-                                style={{ backgroundColor: '#1b1c1a', color: '#fbf9f6', textAlign: 'center' }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#C9A96E'
-                                    e.currentTarget.style.color = '#1b1c1a'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#1b1c1a'
-                                    e.currentTarget.style.color = '#fbf9f6'
-                                }}
-                            >
-                                Logout
-                            </button>
-                        </div>
+            <div
+              className="px-6 pb-8 pt-4 border-t"
+              style={{ borderColor: "#e4e2df" }}
+            >
+              <button
+                onClick={() => {
+                  setShowDrawer(false);
+                  setShowLogoutModal(true);
+                }}
+                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium cursor-pointer transition-all duration-300"
+                style={{
+                  backgroundColor: "#1b1c1a",
+                  color: "#fbf9f6",
+                  textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#C9A96E";
+                  e.currentTarget.style.color = "#1b1c1a";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1b1c1a";
+                  e.currentTarget.style.color = "#fbf9f6";
+                }}
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -444,6 +524,10 @@ const Nav = () => {
                     animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}</style>
+      <HelpPanel
+        isOpen={showHelpPanel}
+        onClose={() => setShowHelpPanel(false)}
+      />
     </>
   );
 };

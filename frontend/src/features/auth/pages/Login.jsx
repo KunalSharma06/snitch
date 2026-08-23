@@ -13,6 +13,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [toastError, setToastError] = useState("");
+  const [loginBlockedUntil, setLoginBlockedUntil] = useState(null);
 
   const showToast = (message) => {
     setToastError(message);
@@ -39,23 +40,36 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const user = await handleLogin({
-        email: formData.email,
-        password: formData.password,
-      });
-      if (user.role == "buyer") {
-        navigate("/");
-      } else if (user.role == "seller") {
-        navigate("/seller/dashboard");
-      }
-    } catch (error) {
-      console.error("Login failed", error);
-      showToast(error?.response?.data?.message || "Invalid email or password");
-    }
-  };
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+
+   if (loginBlockedUntil && Date.now() < loginBlockedUntil) {
+     return;
+   }
+
+   try {
+     const user = await handleLogin({
+       email: formData.email,
+       password: formData.password,
+     });
+     if (user.role == "buyer") {
+       navigate("/");
+     } else if (user.role == "seller") {
+       navigate("/seller/dashboard");
+     }
+   } catch (error) {
+     console.error("Login failed", error);
+     const message = error?.message || "Invalid email or password";
+     showToast(message);
+
+     // Extract minutes from the message and set a temporary block
+     const match = message.match(/(\d+)\s*minute/);
+     if (match) {
+       const minutes = Number(match[1]);
+       setLoginBlockedUntil(Date.now() + minutes * 60 * 1000);
+     }
+   }
+ };
 
   // Forgot password: step 1 - request OTP
   const handleForgotEmailSubmit = async (e) => {
@@ -369,24 +383,27 @@ const Login = () => {
                     />
                   </div>
 
-                  <button
+                 <button
                     type="submit"
-                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2"
+                    disabled={loginBlockedUntil && Date.now() < loginBlockedUntil}
+                    className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       backgroundColor: "#1b1c1a",
                       color: "#fbf9f6",
                       fontFamily: "'Inter', sans-serif",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#C9A96E";
-                      e.currentTarget.style.color = "#1b1c1a";
+                      if (!loginBlockedUntil || Date.now() >= loginBlockedUntil) {
+                        e.currentTarget.style.backgroundColor = "#C9A96E";
+                        e.currentTarget.style.color = "#1b1c1a";
+                      }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "#1b1c1a";
                       e.currentTarget.style.color = "#fbf9f6";
                     }}
                   >
-                    Sign In
+                    {loginBlockedUntil && Date.now() < loginBlockedUntil ? "Try again later" : "Sign In"}
                   </button>
 
                   <div className="flex items-center gap-4">
