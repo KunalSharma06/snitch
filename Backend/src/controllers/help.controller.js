@@ -1,15 +1,19 @@
 import conversationModel from "../models/conversation.model.js";
 import messageModel from "../models/message.model.js";
 
-// Get or create the user's active conversation
-export const getOrCreateConversation = async (req, res) => {
+// Get the user's active conversation, WITHOUT creating one
+export const getConversation = async (req, res) => {
   try {
-    let conversation = await conversationModel
+    const conversation = await conversationModel
       .findOne({ user: req.user._id, status: "open" })
       .sort({ createdAt: -1 });
 
     if (!conversation) {
-      conversation = await conversationModel.create({ user: req.user._id });
+      return res.status(200).json({
+        success: true,
+        conversation: null,
+        messages: [],
+      });
     }
 
     const messages = await messageModel
@@ -63,15 +67,18 @@ export const sendMessage = async (req, res) => {
       userEmail: req.user.email,
     });
 
-    return res.status(201).json({
+      return res.status(201).json({
       success: true,
       message,
+      conversation,
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error sending message" });
   }
 };
+
+// Admin: get all conversations
 
 // Admin: get all conversations
 export const getAllConversations = async (req, res) => {
@@ -179,5 +186,60 @@ export const closeConversation = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error closing conversation" });
+  }
+};
+
+export const closeConversationByTimeout = async (req, res) => {
+  const { conversationId } = req.params;
+
+  try {
+    const conversation = await conversationModel.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+    if (conversation.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (conversation.status === "open") {
+      conversation.status = "closed";
+      await conversation.save();
+    }
+
+    return res.status(200).json({ success: true, conversation });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error closing conversation" });
+  }
+};
+
+// Admin: delete a closed conversation (and its messages)
+export const deleteConversation = async (req, res) => {
+  const { conversationId } = req.params;
+
+  try {
+    const conversation = await conversationModel.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    if (conversation.status !== "closed") {
+      return res.status(400).json({
+        message: "Only closed conversations can be deleted",
+      });
+    }
+
+    await messageModel.deleteMany({ conversation: conversationId });
+    await conversationModel.findByIdAndDelete(conversationId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error deleting conversation" });
   }
 };

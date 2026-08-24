@@ -4,7 +4,9 @@ import {
   getAllConversationsApi,
   getConversationMessagesApi,
   sendAgentReplyApi,
-  closeConversationApi
+  closeConversationApi,
+  closeConversationByTimeoutApi,
+  deleteConversationApi
 } from "../service/help.api.js";
 
 export const useHelp = () => {
@@ -15,7 +17,7 @@ export const useHelp = () => {
 
   async function handleSendMessage(text) {
     const data = await sendMessageApi(text);
-    return data.message;
+    return data;
   }
 
   async function handleGetAllConversations() {
@@ -38,12 +40,24 @@ export const useHelp = () => {
     return data;
   }
 
+  async function handleCloseByTimeout(conversationId) {
+    const data = await closeConversationByTimeoutApi(conversationId);
+    return data;
+  }
+
+  async function handleDeleteConversation(conversationId) {
+    const data = await deleteConversationApi(conversationId);
+    return data;
+  }
+
   return {
     handleGetConversation,
     handleSendMessage,
     handleGetAllConversations,
     handleGetConversationMessages,
     handleSendAgentReply,
-    handleCloseConversation
+    handleCloseConversation,
+    handleCloseByTimeout,
+    handleDeleteConversation
   };
 };

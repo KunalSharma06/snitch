@@ -13,20 +13,21 @@ const tokens = {
   primary: "#C9A96E",
 };
 
-const WAIT_MS = 5 * 60 * 1000; // 5 minutes
+const FIRST_WAIT_MS = 2 * 60 * 1000; // 2 minutes
+const FINAL_WAIT_MS = 5 * 60 * 1000; // 5 minutes total
 
 const ChatWindow = () => {
   const user = useSelector((state) => state.auth.user);
-  const { handleGetConversation, handleSendMessage } = useHelp();
+  const { handleGetConversation, handleSendMessage, handleCloseByTimeout } = useHelp();
 
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [waitingForAgent, setWaitingForAgent] = useState(false);
-  const [showBusyMessage, setShowBusyMessage] = useState(false);
-  const waitTimerRef = useRef(null);
+  const [waitStage, setWaitStage] = useState(null); // null | "waiting" | "busy" | "timedOut"
+  const firstTimerRef = useRef(null);
+  const finalTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const ChatWindow = () => {
 
         const hasUserMsg = data.messages.some((m) => m.sender === "user");
         const hasAgentMsg = data.messages.some((m) => m.sender === "agent");
-        if (hasUserMsg && !hasAgentMsg) {
+        if (hasUserMsg && !hasAgentMsg && data.conversation.status === "open") {
           startWaitTimer(new Date(data.messages[data.messages.length - 1].createdAt).getTime());
         }
       } catch (err) {
@@ -50,52 +51,81 @@ const ChatWindow = () => {
     fetchConversation();
   }, []);
 
-    useEffect(() => {
-      const handleIncoming = (data) => {
-        setMessages((prev) => [...prev, data.message]);
-        if (data.message.sender === "agent") {
-          setWaitingForAgent(false);
-          setShowBusyMessage(false);
-          if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
-        }
-      };
+      useEffect(() => {
+        const handleIncoming = (data) => {
+          setMessages((prev) => [...prev, data.message]);
+          if (data.message.sender === "agent") {
+            setWaitStage(null);
+            clearAllTimers();
+          }
+        };
 
-      const handleClosed = () => {
-        setConversation((prev) =>
-          prev ? { ...prev, status: "closed" } : prev,
-        );
-      };
+        const handleClosed = () => {
+          setConversation((prev) =>
+            prev ? { ...prev, status: "closed" } : prev,
+          );
+        };
 
-      socket.on("newSupportMessage", handleIncoming);
-      socket.on("conversationClosed", handleClosed);
-      return () => {
-        socket.off("newSupportMessage", handleIncoming);
-        socket.off("conversationClosed", handleClosed);
-      };
-    }, []);
+        socket.on("newSupportMessage", handleIncoming);
+        socket.on("conversationClosed", handleClosed);
+        return () => {
+          socket.off("newSupportMessage", handleIncoming);
+          socket.off("conversationClosed", handleClosed);
+        };
+      }, [conversation]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const startWaitTimer = (fromTime) => {
-    setWaitingForAgent(true);
-    setShowBusyMessage(false);
-    const elapsed = Date.now() - fromTime;
-    const remaining = WAIT_MS - elapsed;
+    useEffect(() => {
+      return () => clearAllTimers();
+    }, []);
 
-    if (remaining <= 0) {
-      setShowBusyMessage(true);
-      setWaitingForAgent(false);
-      return;
-    }
+    const clearAllTimers = () => {
+      if (firstTimerRef.current) clearTimeout(firstTimerRef.current);
+      if (finalTimerRef.current) clearTimeout(finalTimerRef.current);
+    };
 
-    if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
-    waitTimerRef.current = setTimeout(() => {
-      setShowBusyMessage(true);
-      setWaitingForAgent(false);
-    }, remaining);
-  };
+    const startWaitTimer = (fromTime) => {
+      clearAllTimers();
+      const elapsed = Date.now() - fromTime;
+      const firstRemaining = FIRST_WAIT_MS - elapsed;
+      const finalRemaining = FINAL_WAIT_MS - elapsed;
+
+      if (finalRemaining <= 0) {
+        handleTimeoutClose();
+        return;
+      }
+
+      if (firstRemaining <= 0) {
+        setWaitStage("busy");
+      } else {
+        setWaitStage("waiting");
+        firstTimerRef.current = setTimeout(() => {
+          setWaitStage("busy");
+        }, firstRemaining);
+      }
+
+      finalTimerRef.current = setTimeout(() => {
+        handleTimeoutClose();
+      }, finalRemaining);
+    };
+
+    const handleTimeoutClose = async () => {
+      setWaitStage("timedOut");
+      clearAllTimers();
+      if (conversation?._id) {
+        try {
+          await handleCloseByTimeout(conversation._id);
+          setConversation((prev) =>
+            prev ? { ...prev, status: "closed" } : prev,
+          );
+        } catch (err) {
+          console.error("Failed to auto-close conversation", err);
+        }
+      }
+    };
 
   const handleSend = async () => {
     if (!input.trim() || sending) return;
@@ -104,8 +134,12 @@ const ChatWindow = () => {
     setInput("");
 
     try {
-      const message = await handleSendMessage(text);
-      setMessages((prev) => [...prev, message]);
+      const data = await handleSendMessage(text);
+      setMessages((prev) => [...prev, data.message]);
+      if (data.conversation) {
+        setConversation(data.conversation);
+      }
+      setWaitStage(null);
       startWaitTimer(Date.now());
     } catch (err) {
       console.error("Failed to send message", err);
@@ -162,7 +196,7 @@ const ChatWindow = () => {
           </div>
         ))}
 
-        {waitingForAgent && (
+        {waitStage === "waiting" && (
           <div className="flex justify-start">
             <div
               className="px-4 py-2.5 text-xs"
@@ -176,13 +210,23 @@ const ChatWindow = () => {
           </div>
         )}
 
-        {showBusyMessage && (
+        {waitStage === "busy" && (
           <div
             className="px-4 py-3 text-xs text-center"
             style={{ backgroundColor: "#fff3cd", color: "#856404" }}
           >
-            All our agents are currently busy. Please try again later, or email
-            us for assistance.
+            Please wait a little longer — our agents are currently busy helping
+            other customers.
+          </div>
+        )}
+
+        {waitStage === "timedOut" && (
+          <div
+            className="px-4 py-3 text-xs text-center"
+            style={{ backgroundColor: "#fdf0ee", color: "#c0392b" }}
+          >
+            Sorry for the interruption. Please try again later. This
+            conversation has been closed.
           </div>
         )}
 
@@ -205,28 +249,23 @@ const ChatWindow = () => {
         className="px-6 py-5 border-t flex gap-2"
         style={{ borderColor: tokens.surfaceHighest }}
       >
-        <input
+          <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder={
-            conversation?.status === "closed"
-              ? "Conversation closed"
-              : "Type a message..."
-          }
-          disabled={sending || conversation?.status === "closed"}
-          className="flex-1 bg-transparent border py-3 px-4 text-sm focus:outline-none"
+          placeholder={conversation?.status === "closed" || waitStage === "timedOut" ? "Conversation closed" : "Type a message..."}
+          disabled={sending || conversation?.status === "closed" || waitStage === "timedOut"}
+          className="flex-1 bg-transparent border py-3 px-4 text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             borderColor: tokens.surfaceHighest,
             color: tokens.onSurface,
+            backgroundColor: (conversation?.status === "closed" || waitStage === "timedOut") ? tokens.surfaceLow : "transparent",
           }}
         />
-        <button
+          <button
           onClick={handleSend}
-          disabled={
-            sending || !input.trim() || conversation?.status === "closed"
-          }
-          className="px-5 text-[11px] uppercase tracking-wider font-medium cursor-pointer disabled:opacity-50"
+          disabled={sending || !input.trim() || conversation?.status === "closed" || waitStage === "timedOut"}
+          className="px-5 text-[11px] uppercase tracking-wider font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ backgroundColor: tokens.onSurface, color: tokens.surface }}
         >
           Send

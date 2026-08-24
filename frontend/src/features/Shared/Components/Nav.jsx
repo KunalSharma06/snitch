@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router";
 import { useAuth } from "../../auth/hook/useAuth.js";
 import HelpPanel from "../../help/components/HelpPanel.jsx";
+// import { lockScroll, unlockScroll } from "../../../lib/scrollLock.js";
 
 const Nav = () => {
   const navigate = useNavigate();
@@ -13,6 +14,19 @@ const Nav = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
+
+     useEffect(() => {
+    if (showDrawer) {
+      window.__scrollLockCount = (window.__scrollLockCount || 0) + 1;
+      document.body.style.overflow = "hidden";
+      return () => {
+        window.__scrollLockCount = Math.max(0, (window.__scrollLockCount || 1) - 1);
+        if (window.__scrollLockCount === 0) {
+          document.body.style.overflow = "";
+        }
+      };
+    }
+  }, [showDrawer]);
 
   const menuItems = [
     {

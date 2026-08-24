@@ -34,3 +34,13 @@ export const closeConversationApi = async (conversationId) => {
   const res = await helpApiInstance.patch(`/admin/conversations/${conversationId}/close`);
   return res.data;
 };
+
+export const closeConversationByTimeoutApi = async (conversationId) => {
+  const res = await helpApiInstance.patch(`/conversation/${conversationId}/timeout-close`);
+  return res.data;
+};
+
+export async function deleteConversationApi(conversationId) {
+  const res = await helpApiInstance.delete(`/admin/conversation/${conversationId}`);
+  return res.data;
+}
