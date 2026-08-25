@@ -219,14 +219,14 @@ useEffect(() => {
               {orders.map((order) => (
                 <div
                   key={order._id}
-                  className="p-6 md:p-8 rounded-sm transition-all duration-300"
+                  className="p-4 sm:p-6 md:p-8 rounded-sm transition-all duration-300"
                   style={{
                     backgroundColor: tokens.surfaceLowest,
                     border: `1px solid ${tokens.surfaceHighest}`,
                   }}
                 >
                   <div
-                    className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-5"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 pb-5"
                     style={{
                       borderBottom: `1px solid ${tokens.surfaceHighest}`,
                     }}
@@ -236,7 +236,7 @@ useEffect(() => {
                         className="text-[10px] uppercase tracking-[0.2em] font-bold mb-1"
                         style={{ color: tokens.onSurface }}
                       >
-                        Order ID : #{order._id}
+                        Order #{order._id.slice(-8).toUpperCase()}
                       </p>
                       <p
                         className="text-[10px] uppercase tracking-[0.15em]"
@@ -254,7 +254,7 @@ useEffect(() => {
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col items-end gap-1.5">
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5">
                       <span
                         className="text-[10px] uppercase tracking-[0.15em] font-bold px-3 py-1.5"
                         style={{

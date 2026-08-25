@@ -77,7 +77,7 @@ const Home = () => {
 
           {/* ── Product Grid ── */}
           {products && products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16 pb-32">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-8 sm:gap-y-16 pb-32">
               {products.map((product) => {
                 const imageUrl =
                   product.images && product.images.length > 0
@@ -113,7 +113,7 @@ const Home = () => {
                         </span>
                       )}
                       <h3
-                        className="text-xl leading-snug transition-colors duration-300 group-hover:text-[#C9A96E]"
+                        className="text-sm sm:text-xl leading-snug transition-colors duration-300 group-hover:text-[#C9A96E]"
                         style={{
                           fontFamily: "'Cormorant Garamond', serif",
                           color: "#1b1c1a",
@@ -143,7 +143,14 @@ const Home = () => {
                               className="text-[9px] uppercase tracking-[0.2em] font-medium ml-1"
                               style={{ color: "#ba1a1a" }}
                             >
-                              Save {Math.round(((product.price.amount - product.discountedPrice.amount) / product.price.amount) * 100)}%
+                              Save{" "}
+                              {Math.round(
+                                ((product.price.amount -
+                                  product.discountedPrice.amount) /
+                                  product.price.amount) *
+                                  100,
+                              )}
+                              %
                             </span>
                           </>
                         ) : (

@@ -235,7 +235,7 @@ const Cart = () => {
       />
 
       <div
-        className="min-h-screen pb-24 selection:bg-[#C9A96E]/30"
+        className="min-h-screen pb-40 lg:pb-24 selection:bg-[#C9A96E]/30"
         style={{
           backgroundColor: tokens.surface,
           fontFamily: "'Inter', sans-serif",
@@ -287,7 +287,7 @@ const Cart = () => {
                   return (
                     <div
                       key={_id}
-                      className="flex gap-6 md:gap-8 p-6 md:p-8 transition-all duration-300"
+                      className="flex gap-4 md:gap-8 p-4 md:p-8 transition-all duration-300"
                       style={{ backgroundColor: tokens.surfaceLow }}
                     >
                       {/* Product Image */}
@@ -501,7 +501,7 @@ const Cart = () => {
             {/* ═══════════════════════════════════════════════
                             RIGHT COLUMN — Order Summary (35%, Sticky)
                         ═══════════════════════════════════════════════ */}
-            <div className="w-full lg:w-[35%] lg:sticky lg:top-28">
+            <div className="w-full lg:w-[35%] lg:sticky lg:top-28 hidden lg:block">
               <div
                 className="p-8"
                 style={{
@@ -654,6 +654,39 @@ const Cart = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Mobile sticky checkout bar */}
+        <div
+          className="lg:hidden fixed bottom-16 left-0 right-0 px-4 py-3 flex items-center justify-between gap-3 border-t"
+          style={{
+            backgroundColor: tokens.surfaceLowest,
+            borderColor: tokens.surfaceHighest,
+            boxShadow: "0 -4px 20px rgba(27,28,26,0.06)",
+            zIndex: 30,
+          }}
+        >
+          <div>
+            <p
+              className="text-[9px] uppercase tracking-wider"
+              style={{ color: tokens.muted }}
+            >
+              Total
+            </p>
+            <p
+              className="text-sm font-medium"
+              style={{ color: tokens.onSurface }}
+            >
+              {formatCurrency(cart.totalPrice)}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/checkout")}
+            className="flex-1 max-w-[200px] py-3.5 text-[11px] uppercase tracking-[0.2em] font-medium cursor-pointer"
+            style={{ backgroundColor: tokens.onSurface, color: tokens.surface }}
+          >
+            Checkout
+          </button>
         </div>
       </div>
 

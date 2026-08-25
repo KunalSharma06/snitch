@@ -218,7 +218,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
       />
 
       <div
-        className="min-h-screen selection:bg-[#C9A96E]/30 pb-24"
+        className="min-h-screen selection:bg-[#C9A96E]/30 pb-32 sm:pb-24"
         style={{
           backgroundColor: "#fbf9f6",
           fontFamily: "'Inter', sans-serif",
@@ -259,12 +259,12 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
             <div className="w-full lg:w-[45%] xl:w-[50%] flex flex-col-reverse md:flex-row gap-4 lg:gap-6">
               {/* Thumbnails (Vertical on Desktop, Horizontal on Mobile) */}
               {displayImages.length > 1 && (
-                <div className="flex flex-row md:flex-col gap-4 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide w-full md:w-20 lg:w-24 flex-shrink-0 md:max-h-[calc(100vh-200px)]">
+                <div className="flex flex-row md:flex-col gap-3 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 scrollbar-hide w-full md:w-20 lg:w-24 flex-shrink-0 md:max-h-[calc(100vh-200px)]">
                   {displayImages.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`flex-shrink-0 w-20 md:w-full aspect-[4/5] overflow-hidden transition-all duration-300 ${selectedImage === idx ? "opacity-100 ring-1 ring-[#C9A96E] ring-offset-2" : "opacity-50 hover:opacity-100"}`}
+                      className={`flex-shrink-0 w-16 sm:w-20 md:w-full aspect-[4/5] overflow-hidden transition-all duration-300 ${selectedImage === idx ? "opacity-100 ring-1 ring-[#C9A96E] ring-offset-2" : "opacity-50 hover:opacity-100"}`}
                       style={{
                         backgroundColor: "#f5f3f0",
                         "--tw-ring-offset-color": "#fbf9f6",
@@ -300,7 +300,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                           prev === 0 ? displayImages.length - 1 : prev - 1,
                         )
                       }
-                      className="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 border"
+                      className="absolute left-3 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 border"
                       style={{
                         backgroundColor: "rgba(251,249,246,0.8)",
                         borderColor: "#e4e2df",
@@ -335,7 +335,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                           prev === displayImages.length - 1 ? 0 : prev + 1,
                         )
                       }
-                      className="absolute right-4 lg:right-6 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 border"
+                      className="absolute right-3 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 border"
                       style={{
                         backgroundColor: "rgba(251,249,246,0.8)",
                         borderColor: "#e4e2df",
@@ -379,9 +379,9 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                   {product.brand}
                 </span>
               )}
-              <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-start justify-between gap-4 mb-6">
                 <h1
-                  className="text-3xl md:text-4xl lg:text-5xl font-light leading-[1.1]"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-[1.15]"
                   style={{
                     fontFamily: "'Cormorant Garamond', serif",
                     color: "#1b1c1a",
@@ -389,12 +389,16 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                 >
                   {product.title}
                 </h1>
-                <div className="pt-2 shrink-0 flex items-center gap-3">
-                  <FavouriteButton productId={product._id} size={24} />
+                <div className="pt-1 sm:pt-2 shrink-0">
+                  <FavouriteButton productId={product._id} size={22} />
                 </div>
               </div>
               <div className="mb-6">
-                <AISummaryModal productId={product._id} productTitle={product.title} variantId={activeVariant?._id}/>
+                <AISummaryModal
+                  productId={product._id}
+                  productTitle={product.title}
+                  variantId={activeVariant?._id}
+                />
               </div>
               <div className="mb-8">
                 <div className="flex items-center gap-3">
@@ -418,13 +422,17 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                         className="text-[10px] uppercase tracking-[0.2em] font-medium ml-2"
                         style={{ color: "#ba1a1a" }}
                       >
-                        Save {Math.round(((originalPrice.amount - displayPrice.amount) / originalPrice.amount) * 100)}%
+                        Save{" "}
+                        {Math.round(
+                          ((originalPrice.amount - displayPrice.amount) /
+                            originalPrice.amount) *
+                            100,
+                        )}
+                        %
                       </span>
                     </>
                   )}
                 </div>
-
-
               </div>
 
               <div
@@ -650,7 +658,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
               >
                 Curated For You
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12">
                 {similarProducts.map((simProd) => {
                   const imageUrl =
                     simProd.images && simProd.images.length > 0
@@ -689,7 +697,7 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                           </span>
                         )}
                         <h3
-                          className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] truncate"
+                          className="text-sm sm:text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] truncate"
                           style={{
                             fontFamily: "'Cormorant Garamond', serif",
                             color: "#1b1c1a",
@@ -718,7 +726,14 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                                 className="text-[8px] uppercase tracking-[0.2em] font-medium ml-1"
                                 style={{ color: "#ba1a1a" }}
                               >
-                                Save {Math.round(((simProd.price.amount - simProd.discountedPrice.amount) / simProd.price.amount) * 100)}%
+                                Save{" "}
+                                {Math.round(
+                                  ((simProd.price.amount -
+                                    simProd.discountedPrice.amount) /
+                                    simProd.price.amount) *
+                                    100,
+                                )}
+                                %
                               </span>
                             </>
                           ) : (

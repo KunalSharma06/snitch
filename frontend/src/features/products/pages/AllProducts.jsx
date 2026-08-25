@@ -427,16 +427,16 @@ const AllProducts = () => {
 
           {/* Category quick-filter bar + Filter trigger (right-aligned) */}
           <div
-            className="w-full flex items-center justify-between gap-6 flex-wrap border-b pb-4"
+            className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4"
             style={{ borderColor: "#e4e2df" }}
           >
             {productTypes.length > 0 ? (
-              <div className="flex flex-wrap gap-8 md:gap-12">
+              <div className="flex gap-6 sm:gap-8 md:gap-12 overflow-x-auto scrollbar-hide pb-1 sm:pb-0 -mx-8 px-8 sm:mx-0 sm:px-0">
                 {["ALL", ...productTypes].map((type) => (
                   <button
                     key={type}
                     onClick={() => setFilter(type)}
-                    className="text-[11px] uppercase tracking-[0.2em] transition-all duration-300 relative pb-1 cursor-pointer"
+                    className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] transition-all duration-300 relative pb-1 cursor-pointer flex-shrink-0"
                     style={{
                       color: filter === type ? "#1b1c1a" : "#7A6E63",
                       fontWeight: filter === type ? 500 : 400,
@@ -445,7 +445,7 @@ const AllProducts = () => {
                     {type}
                     {filter === type && (
                       <span
-                        className="absolute -bottom-[17px] left-0 right-0 h-[1px]"
+                        className="absolute -bottom-[5px] sm:-bottom-[17px] left-0 right-0 h-[1px]"
                         style={{ backgroundColor: "#1b1c1a" }}
                       />
                     )}
@@ -458,10 +458,10 @@ const AllProducts = () => {
 
             <button
               onClick={() => setIsFilterOpen(true)}
-              className="flex items-center gap-2 px-5 py-3 text-[11px] uppercase tracking-[0.2em] font-medium border transition-all duration-300 shrink-0 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 sm:py-3 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-medium border transition-all duration-300 shrink-0 cursor-pointer w-full sm:w-auto"
               style={{
                 borderColor: activeFilterCount > 0 ? "#C9A96E" : "#d0c5b5",
-                color: "#1b1c1a",
+                color: activeFilterCount > 0 ? "#C9A96E" : "#1b1c1a",
                 backgroundColor:
                   activeFilterCount > 0 ? "#faf5ec" : "transparent",
               }}
@@ -524,7 +524,7 @@ const AllProducts = () => {
               </p>
             </div>
           ) : filtered && filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-8 sm:gap-y-16">
               {filtered.map((product) => {
                 const imageUrl =
                   product.images && product.images.length > 0
@@ -559,7 +559,7 @@ const AllProducts = () => {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-center text-center px-4">
+                    <div className="flex flex-col items-center text-center px-1 sm:px-4">
                       {product.brand && product.brand !== "Unbranded" && (
                         <span
                           className="text-[9px] uppercase tracking-[0.2em] font-medium mb-1"
@@ -569,7 +569,7 @@ const AllProducts = () => {
                         </span>
                       )}
                       <h3
-                        className="text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] line-clamp-1"
+                        className="text-sm sm:text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] line-clamp-1"
                         style={{
                           fontFamily: "'Cormorant Garamond', serif",
                           color: "#1b1c1a",
@@ -661,7 +661,7 @@ const AllProducts = () => {
 
           {/* Panel */}
           <div
-            className="fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col"
+            className="fixed top-0 right-0 h-full w-full max-w-full sm:max-w-sm z-50 flex flex-col"
             style={{
               backgroundColor: "#fbf9f6",
               boxShadow: "-8px 0 32px rgba(0,0,0,0.12)",
@@ -669,11 +669,11 @@ const AllProducts = () => {
           >
             {/* Header */}
             <div
-              className="flex items-center justify-between px-8 py-6 border-b"
+              className="flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6 border-b"
               style={{ borderColor: "#e4e2df" }}
             >
               <h3
-                className="text-2xl font-light"
+                className="text-xl sm:text-2xl font-light"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   color: "#1b1c1a",
@@ -702,7 +702,7 @@ const AllProducts = () => {
             </div>
 
             {/* Scrollable filter body */}
-            <div className="flex-1 overflow-y-auto px-8 py-6">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6">
               {/* Brand */}
               {brands.length > 0 && (
                 <div className="mb-10">
@@ -795,7 +795,7 @@ const AllProducts = () => {
 
             {/* Footer actions */}
             <div
-              className="px-8 py-6 border-t flex gap-3"
+              className="px-6 sm:px-8 py-5 sm:py-6 border-t flex gap-3"
               style={{ borderColor: "#e4e2df" }}
             >
               <button

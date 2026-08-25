@@ -5,7 +5,7 @@ import ScrollToTop from "../features/Shared/Components/ScrollToTop";
 import { useFavourites } from "../features/favourites/hook/useFavourites";
 import { useSelector } from "react-redux";
 import { socket } from "../lib/socket";
-
+import BottomNav from "../features/Shared/Components/BottomNav";
 
 const AppLayout = () => {
   const user = useSelector((state) => state.auth.user);
@@ -37,8 +37,11 @@ const AppLayout = () => {
   return (
     <>
       <Nav />
-      <Outlet />
+      <div className="pb-16 sm:pb-0">
+        <Outlet />
+      </div>
       <ScrollToTop />
+      <BottomNav />
     </>
   );
 };

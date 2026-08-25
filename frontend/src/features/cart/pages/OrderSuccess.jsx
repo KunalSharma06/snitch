@@ -69,10 +69,9 @@ const OrderSuccess = () => {
       >
         {/* ── Two-column layout ── */}
         <div className="flex flex-col lg:flex-row min-h-screen">
-
           {/* ════ LEFT PANEL ════ */}
           <div
-            className="lg:w-[52%] flex flex-col justify-between px-12 md:px-20 lg:px-28 pt-16 pb-20"
+            className="lg:w-[52%] flex flex-col justify-between px-6 sm:px-12 md:px-20 lg:px-28 pt-10 sm:pt-16 pb-12 sm:pb-20"
             style={{ backgroundColor: tokens.surface }}
           >
             {/* Top: brand mark */}
@@ -88,7 +87,11 @@ const OrderSuccess = () => {
             {/* Center: thank you block */}
             <div
               className="left-content py-20"
-              style={{ opacity: visible ? 1 : 0, transition: "opacity 0.9s ease, transform 0.9s ease", transform: visible ? "translateY(0)" : "translateY(20px)" }}
+              style={{
+                opacity: visible ? 1 : 0,
+                transition: "opacity 0.9s ease, transform 0.9s ease",
+                transform: visible ? "translateY(0)" : "translateY(20px)",
+              }}
             >
               {/* Animated check */}
               <div className="flex items-center gap-4 mb-12">
@@ -96,7 +99,12 @@ const OrderSuccess = () => {
                   className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: tokens.primaryLight }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke={tokens.primary} viewBox="0 0 24 24">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke={tokens.primary}
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       className="check-draw"
                       strokeLinecap="round"
@@ -119,11 +127,12 @@ const OrderSuccess = () => {
                 className="font-light leading-[1.1] mb-8"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(2.8rem, 5vw, 4.2rem)",
+                  fontSize: "clamp(2.2rem, 8vw, 4.2rem)",
                   color: tokens.onSurface,
                 }}
               >
-                Thank you<br />
+                Thank you
+                <br />
                 <em style={{ color: tokens.secondary }}>for your order.</em>
               </h1>
 
@@ -131,41 +140,84 @@ const OrderSuccess = () => {
                 className="text-sm leading-[2] mb-14 max-w-sm"
                 style={{ color: tokens.secondary }}
               >
-                Your selected pieces are being carefully prepared at our atelier.
-                A shipping confirmation and tracking link will be dispatched as soon as your parcel departs.
+                Your selected pieces are being carefully prepared at our
+                atelier. A shipping confirmation and tracking link will be
+                dispatched as soon as your parcel departs.
               </p>
 
               {/* Order meta cards */}
-              <div className="flex gap-5 mb-14 flex-wrap">
+              <div className="flex gap-3 sm:gap-5 mb-10 sm:mb-14 flex-wrap">
                 <div
                   className="px-6 py-5 border flex-1 min-w-[130px]"
-                  style={{ borderColor: tokens.outlineVariant, backgroundColor: tokens.surfaceLow }}
+                  style={{
+                    borderColor: tokens.outlineVariant,
+                    backgroundColor: tokens.surfaceLow,
+                  }}
                 >
-                  <p className="text-[9px] uppercase tracking-[0.2em] mb-1.5" style={{ color: tokens.muted }}>Order ID</p>
-                  <p className="text-sm font-mono font-medium" style={{ color: tokens.onSurface }}>{orderId}</p>
+                  <p
+                    className="text-[9px] uppercase tracking-[0.2em] mb-1.5"
+                    style={{ color: tokens.muted }}
+                  >
+                    Order ID
+                  </p>
+                  <p
+                    className="text-sm font-mono font-medium"
+                    style={{ color: tokens.onSurface }}
+                  >
+                    {orderId}
+                  </p>
                 </div>
                 <div
                   className="px-5 py-4 border flex-1 min-w-[120px]"
-                  style={{ borderColor: tokens.outlineVariant, backgroundColor: tokens.surfaceLow }}
+                  style={{
+                    borderColor: tokens.outlineVariant,
+                    backgroundColor: tokens.surfaceLow,
+                  }}
                 >
-                  <p className="text-[9px] uppercase tracking-[0.2em] mb-1.5" style={{ color: tokens.muted }}>Date</p>
-                  <p className="text-sm font-medium" style={{ color: tokens.onSurface }}>{orderDate}</p>
+                  <p
+                    className="text-[9px] uppercase tracking-[0.2em] mb-1.5"
+                    style={{ color: tokens.muted }}
+                  >
+                    Date
+                  </p>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: tokens.onSurface }}
+                  >
+                    {orderDate}
+                  </p>
                 </div>
                 <div
                   className="px-5 py-4 border flex-1 min-w-[120px]"
-                  style={{ borderColor: tokens.outlineVariant, backgroundColor: tokens.surfaceLow }}
+                  style={{
+                    borderColor: tokens.outlineVariant,
+                    backgroundColor: tokens.surfaceLow,
+                  }}
                 >
-                  <p className="text-[9px] uppercase tracking-[0.2em] mb-1.5" style={{ color: tokens.muted }}>Status</p>
-                  <p className="text-sm font-medium" style={{ color: "#6B9E7A" }}>Processing</p>
+                  <p
+                    className="text-[9px] uppercase tracking-[0.2em] mb-1.5"
+                    style={{ color: tokens.muted }}
+                  >
+                    Status
+                  </p>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "#6B9E7A" }}
+                  >
+                    Processing
+                  </p>
                 </div>
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link
                   to="/"
-                  className="px-8 py-3.5 text-[10px] uppercase tracking-[0.25em] font-medium transition-all duration-300"
-                  style={{ backgroundColor: tokens.onSurface, color: tokens.surface }}
+                  className="px-8 py-3.5 text-[10px] uppercase tracking-[0.25em] font-medium transition-all duration-300 text-center"
+                  style={{
+                    backgroundColor: tokens.onSurface,
+                    color: tokens.surface,
+                  }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = tokens.primary;
                     e.currentTarget.style.color = tokens.onSurface;
@@ -179,10 +231,18 @@ const OrderSuccess = () => {
                 </Link>
                 <Link
                   to="/cart"
-                  className="px-8 py-3.5 text-[10px] uppercase tracking-[0.25em] font-medium border transition-all duration-300"
-                  style={{ backgroundColor: "transparent", borderColor: tokens.outlineVariant, color: tokens.onSurface }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = tokens.primary; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = tokens.outlineVariant; }}
+                  className="px-8 py-3.5 text-[10px] uppercase tracking-[0.25em] font-medium border transition-all duration-300 text-center"
+                  style={{
+                    backgroundColor: "transparent",
+                    borderColor: tokens.outlineVariant,
+                    color: tokens.onSurface,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = tokens.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = tokens.outlineVariant;
+                  }}
                 >
                   View Cart
                 </Link>
@@ -190,18 +250,28 @@ const OrderSuccess = () => {
             </div>
 
             {/* Bottom: footnote */}
-            <p className="text-[10px] uppercase tracking-[0.15em]" style={{ color: tokens.muted }}>
+            <p
+              className="text-[10px] uppercase tracking-[0.15em]"
+              style={{ color: tokens.muted }}
+            >
               © {new Date().getFullYear()} Snitch — All Rights Reserved
             </p>
           </div>
 
           {/* ════ DIVIDER ════ */}
-          <div className="hidden lg:block w-px self-stretch" style={{ backgroundColor: tokens.outlineVariant }} />
+          <div
+            className="hidden lg:block w-px self-stretch"
+            style={{ backgroundColor: tokens.outlineVariant }}
+          />
 
           {/* ════ RIGHT PANEL ════ */}
           <div
-            className="lg:w-[48%] flex flex-col px-10 md:px-14 lg:px-16 pt-16 pb-20 order-summary-panel"
-            style={{ backgroundColor: tokens.surfaceLow, opacity: visible ? 1 : 0, transition: "opacity 1.1s ease 0.2s" }}
+            className="lg:w-[48%] flex flex-col px-6 sm:px-10 md:px-14 lg:px-16 pt-10 sm:pt-16 pb-20 order-summary-panel"
+            style={{
+              backgroundColor: tokens.surfaceLow,
+              opacity: visible ? 1 : 0,
+              transition: "opacity 1.1s ease 0.2s",
+            }}
           >
             {/* Header */}
             <div className="flex items-center gap-4 mb-12">
@@ -211,7 +281,10 @@ const OrderSuccess = () => {
               >
                 Order Summary
               </h2>
-              <div className="flex-1 h-px" style={{ backgroundColor: tokens.surfaceHighest }} />
+              <div
+                className="flex-1 h-px"
+                style={{ backgroundColor: tokens.surfaceHighest }}
+              />
               <span
                 className="text-[10px] uppercase tracking-[0.15em] shrink-0"
                 style={{ color: tokens.muted }}
@@ -221,24 +294,39 @@ const OrderSuccess = () => {
             </div>
 
             {/* Items list */}
-            <div className="flex-1 overflow-y-auto flex flex-col gap-8 mb-12" style={{ maxHeight: "58vh" }}>
+            <div
+              className="flex-1 overflow-y-auto flex flex-col gap-8 mb-12"
+              style={{ maxHeight: "58vh" }}
+            >
               {items.length === 0 ? (
                 <div
                   className="border px-6 py-10 text-center"
                   style={{ borderColor: tokens.outlineVariant }}
                 >
-                  <p className="text-xs uppercase tracking-[0.18em]" style={{ color: tokens.muted }}>
+                  <p
+                    className="text-xs uppercase tracking-[0.18em]"
+                    style={{ color: tokens.muted }}
+                  >
                     No items in this order.
                   </p>
                 </div>
               ) : (
                 items.map((item, idx) => {
-                  const { product, variant: variantId, price, quantity, _id } = item;
+                  const {
+                    product,
+                    variant: variantId,
+                    price,
+                    quantity,
+                    _id,
+                  } = item;
                   const variantDetail = product?.variants;
                   const imageUrl = getDisplayImage(product, variantDetail);
-                  const displayPrice = price ?? variantDetail?.price ?? product?.price;
+                  const displayPrice =
+                    price ?? variantDetail?.price ?? product?.price;
                   const attributes = variantDetail?.attributes ?? {};
-                  const attrParts = Object.entries(attributes).map(([k, v]) => `${v}`).join(" / ");
+                  const attrParts = Object.entries(attributes)
+                    .map(([k, v]) => `${v}`)
+                    .join(" / ");
 
                   return (
                     <div
@@ -249,7 +337,11 @@ const OrderSuccess = () => {
                       {/* Image */}
                       <div
                         className="shrink-0 overflow-hidden"
-                        style={{ width: 88, height: 110, backgroundColor: tokens.surfaceHigh }}
+                        style={{
+                          width: 88,
+                          height: 110,
+                          backgroundColor: tokens.surfaceHigh,
+                        }}
                       >
                         {imageUrl ? (
                           <img
@@ -262,9 +354,18 @@ const OrderSuccess = () => {
                             className="w-full h-full flex items-center justify-center"
                             style={{ color: tokens.muted }}
                           >
-                            <svg className="w-5 h-5 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1"
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <svg
+                              className="w-5 h-5 opacity-30"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="1"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
                             </svg>
                           </div>
                         )}
@@ -298,8 +399,14 @@ const OrderSuccess = () => {
 
                       {/* Price */}
                       <div className="shrink-0 flex flex-col justify-center">
-                        <p className="text-xs font-medium" style={{ color: tokens.onSurface }}>
-                          {formatPrice(displayPrice?.currency, displayPrice?.amount)}
+                        <p
+                          className="text-xs font-medium"
+                          style={{ color: tokens.onSurface }}
+                        >
+                          {formatPrice(
+                            displayPrice?.currency,
+                            displayPrice?.amount,
+                          )}
                         </p>
                       </div>
                     </div>
@@ -313,13 +420,24 @@ const OrderSuccess = () => {
               className="border-t pt-8 flex flex-col gap-5"
               style={{ borderColor: tokens.outlineVariant }}
             >
-              <div className="flex justify-between text-xs" style={{ color: tokens.secondary }}>
+              <div
+                className="flex justify-between text-xs"
+                style={{ color: tokens.secondary }}
+              >
                 <span className="uppercase tracking-[0.15em]">Subtotal</span>
                 <span>{formatPrice(currency, totalPrice)}</span>
               </div>
-              <div className="flex justify-between text-xs" style={{ color: tokens.secondary }}>
+              <div
+                className="flex justify-between text-xs"
+                style={{ color: tokens.secondary }}
+              >
                 <span className="uppercase tracking-[0.15em]">Shipping</span>
-                <span className="uppercase tracking-[0.1em]" style={{ color: "#6B9E7A" }}>Complimentary</span>
+                <span
+                  className="uppercase tracking-[0.1em]"
+                  style={{ color: "#6B9E7A" }}
+                >
+                  Complimentary
+                </span>
               </div>
 
               <div
