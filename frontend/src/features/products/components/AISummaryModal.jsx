@@ -31,7 +31,7 @@ const AISummaryModal = ({ productId, productTitle, variantId }) => {
 
     try {
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/products/${productId}/ai-summary`,
+       `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:3000")}/api/products/${productId}/ai-summary`,
         { variantId }
       );
 

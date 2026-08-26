@@ -273,7 +273,7 @@ export const googleCallback = async (req, res) => {
   });
 
   res.cookie("token", token);
-  res.redirect("http://localhost:5173/");
+  res.redirect(process.env.CLIENT_URL || "http://localhost:5173/");
 };
 
 export const getMe = async (req, res) => {
@@ -587,12 +587,11 @@ export const requestEmailChangeOTP = async (req, res) => {
       return res.status(400).json({ message: "This email is already in use" });
     }
 
-
     const { otp } = await otpService.sendOTP(newEmail);
     console.log("OTP for email change:", otp, "-> sending to:", newEmail);
 
     await emailService.sendOTPEmail(newEmail, otp, req.user.fullName);
-        console.log("sendOTPEmail call completed");
+    console.log("sendOTPEmail call completed");
 
     return res.status(200).json({
       success: true,

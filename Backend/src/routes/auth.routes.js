@@ -44,7 +44,7 @@ authRouter.post("/reset-password", resetPassword);
 
 // Google OAuth
 authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-authRouter.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:5173/login' }), googleCallback);
+authRouter.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:5173'}/login` }), googleCallback);
 
 // Get current user
 authRouter.get("/me", authenticateUser, getMe);
