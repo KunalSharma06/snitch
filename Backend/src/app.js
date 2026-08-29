@@ -56,7 +56,7 @@ app.use("/api/help", helpRouter);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-aapp.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) {
