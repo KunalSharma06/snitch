@@ -56,9 +56,12 @@ app.use("/api/help", helpRouter);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.static(path.join(__dirname, "public")));
+aapp.use(express.static(path.join(__dirname, "public")));
 
-app.get("/{*splat}", (req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
