@@ -29,6 +29,7 @@ const ChatWindow = () => {
   const firstTimerRef = useRef(null);
   const finalTimerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const conversationRef = useRef(null);
 
   useEffect(() => {
     async function fetchConversation() {
@@ -74,9 +75,13 @@ const ChatWindow = () => {
         };
       }, [conversation]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+   useEffect(() => {
+     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+   }, [messages]);
+
+   useEffect(() => {
+     conversationRef.current = conversation;
+   }, [conversation]);
 
     useEffect(() => {
       return () => clearAllTimers();
@@ -112,18 +117,22 @@ const ChatWindow = () => {
       }, finalRemaining);
     };
 
-    const handleTimeoutClose = async () => {
+        const handleTimeoutClose = async () => {
       setWaitStage("timedOut");
       clearAllTimers();
-      if (conversation?._id) {
+      const currentConversation = conversationRef.current;
+      if (currentConversation?._id) {
         try {
-          await handleCloseByTimeout(conversation._id);
+          const result = await handleCloseByTimeout(currentConversation._id);
+          console.log("✅ Close-by-timeout SUCCESS:", result);
           setConversation((prev) =>
             prev ? { ...prev, status: "closed" } : prev,
           );
         } catch (err) {
-          console.error("Failed to auto-close conversation", err);
+          console.error("❌ Close-by-timeout FAILED:", err.response?.status, err.response?.data, err.message);
         }
+      } else {
+        console.warn("⚠️ conversationRef.current was empty when timeout fired!", currentConversation);
       }
     };
 
