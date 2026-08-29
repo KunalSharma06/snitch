@@ -548,7 +548,7 @@ export const generateProductAISummary = async (req, res) => {
       : "Not specified";
 
     const llm = new ChatMistralAI({
-      model: "mistral-large-latest",
+      model: "mistral-small-latest",
       apiKey: config.MISTRAL_API_KEY,
       maxTokens: 900,
       temperature: 0.7,
