@@ -3,7 +3,7 @@ import connectToDatabase from "./src/config/database.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 connectToDatabase();
 
 const httpServer = createServer(app);
@@ -34,6 +34,6 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT,"0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

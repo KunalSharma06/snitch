@@ -104,4 +104,6 @@ if (!process.env.RESEND_FROM_EMAIL) {
     REDIS_PASSWORD: process.env.REDIS_PASSWORD || "",
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL
   };
