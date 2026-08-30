@@ -11,7 +11,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [similarProducts, setSimilarProducts] = useState([]);
-  const [toast, setToast] = useState({ visible: false, message: '' });
+  const [toast, setToast] = useState({ visible: false, message: "" });
   const toastTimer = useRef(null);
   const navigate = useNavigate();
   const { handleGetProductById, handleGetSimilarProducts } = useProduct();
@@ -20,7 +20,10 @@ const ProductDetail = () => {
   function showToast(message) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ visible: true, message });
-    toastTimer.current = setTimeout(() => setToast({ visible: false, message: '' }), 3000);
+    toastTimer.current = setTimeout(
+      () => setToast({ visible: false, message: "" }),
+      3000,
+    );
   }
 
   async function fetchProductDetails() {
@@ -60,7 +63,6 @@ const ProductDetail = () => {
       return vKeys.length === sKeys.length && isMatch;
     });
   }, [product, selectedAttributes]);
-
 
   // For each attribute key, compute the set of values that are reachable
   // given the currently selected OTHER attributes. This prevents unrelated
@@ -114,12 +116,24 @@ const ProductDetail = () => {
       });
     });
 
-    const CLOTHING_SIZE_ORDER = ['XXS','XS','S','M','L','XL','XXL','2XL','3XL','4XL','5XL'];
+    const CLOTHING_SIZE_ORDER = [
+      "XXS",
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "2XL",
+      "3XL",
+      "4XL",
+      "5XL",
+    ];
 
     const result = {};
     Object.entries(attrs).forEach(([key, set]) => {
       let values = Array.from(set);
-      if (key.toLowerCase() === 'size') {
+      if (key.toLowerCase() === "size") {
         values.sort((a, b) => {
           const aUpper = a.toString().toUpperCase();
           const bUpper = b.toString().toUpperCase();
@@ -131,7 +145,12 @@ const ProductDetail = () => {
           if (aIdx !== -1) return 1;
           if (bIdx !== -1) return -1;
           // Both are numeric (waist sizes like 28, 30, 32) — sort numerically
-          return a.toString().localeCompare(b.toString(), undefined, { numeric: true, sensitivity: 'base' });
+          return a
+            .toString()
+            .localeCompare(b.toString(), undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
         });
       }
       result[key] = values;
@@ -196,18 +215,18 @@ const ProductDetail = () => {
         ? product.images
         : [{ url: "/snitch_editorial_warm.png" }];
 
-const baseVariantPrice = activeVariant?.price?.amount
-  ? activeVariant.price
-  : product.price;
+  const baseVariantPrice = activeVariant?.price?.amount
+    ? activeVariant.price
+    : product.price;
 
-const discountPrice = activeVariant
-  ? activeVariant.discountedPrice?.amount
-    ? activeVariant.discountedPrice
-    : null
-  : product.discountedPrice;
+  const discountPrice = activeVariant
+    ? activeVariant.discountedPrice?.amount
+      ? activeVariant.discountedPrice
+      : null
+    : product.discountedPrice;
 
-const displayPrice = discountPrice?.amount ? discountPrice : baseVariantPrice;
-const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
+  const displayPrice = discountPrice?.amount ? discountPrice : baseVariantPrice;
+  const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
 
   return (
     <>
@@ -607,6 +626,18 @@ const originalPrice = discountPrice?.amount ? baseVariantPrice : null;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.borderColor = "#d0c5b5";
+                  }}
+                  onClick={async () => {
+                    if (!activeVariant) return;
+                    try {
+                      await handleAddItem({
+                        productId: product._id,
+                        variantId: activeVariant._id,
+                      });
+                      navigate("/cart");
+                    } catch (err) {
+                      showToast("Could not add to cart. Try again.");
+                    }
                   }}
                 >
                   Buy Now
