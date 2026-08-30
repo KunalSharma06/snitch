@@ -285,7 +285,14 @@ useEffect(() => {
 
                   <div className="flex flex-col gap-4 mb-5">
                     {order.orderItems.map((item, idx) => (
-                      <div key={idx} className="flex gap-4">
+                      <div
+                        key={idx}
+                        onClick={() =>
+                          item.productId &&
+                          navigate(`/product/${item.productId}`)
+                        }
+                        className="flex gap-4 cursor-pointer group"
+                      >
                         <div
                           className="flex-shrink-0 overflow-hidden"
                           style={{
@@ -300,12 +307,12 @@ useEffect(() => {
                               "/snitch_editorial_warm.png"
                             }
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
                         <div className="flex-1">
                           <p
-                            className="text-sm"
+                            className="text-sm transition-colors duration-200 group-hover:text-[#C9A96E]"
                             style={{ color: tokens.onSurface }}
                           >
                             {item.title}

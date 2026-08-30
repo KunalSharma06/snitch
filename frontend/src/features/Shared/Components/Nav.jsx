@@ -215,7 +215,7 @@ const Nav = () => {
 
   return (
     <>
-      <nav className="border-b bg-[#fbf9f6]" style={{ borderColor: "#e4e2df" }}>
+        <nav className="sticky top-0 z-30 border-b bg-[#fbf9f6]" style={{ borderColor: "#e4e2df" }}>
         <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-10 pb-6 flex items-center justify-between">
           <Link
             to={user?.role === "seller" ? "/seller/dashboard" : "/"}

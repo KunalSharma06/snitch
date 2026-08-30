@@ -460,6 +460,21 @@ const Cart = () => {
                 })}
               </div>
 
+              {/* Continue Shopping — mobile only, hidden on desktop where sidebar already has it */}
+              <div className="lg:hidden mt-8">
+                <Link
+                  to="/products"
+                  className="w-full flex items-center justify-center py-4 text-[11px] uppercase tracking-[0.25em] font-medium border transition-all duration-300 cursor-pointer"
+                  style={{
+                    backgroundColor: "transparent",
+                    borderColor: tokens.outlineVariant,
+                    color: tokens.onSurface,
+                  }}
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+
               {/* Policy strip */}
               <div
                 className="mt-10 pt-8 grid grid-cols-3 gap-4 text-[10px] uppercase tracking-[0.12em]"
