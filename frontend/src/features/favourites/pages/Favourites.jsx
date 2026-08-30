@@ -5,6 +5,7 @@ import FavouriteButton from "../components/FavouriteButton";
 
 const tokens = {
   surface: "#fbf9f6",
+  surfaceLow: "#f5f3f0",
   surfaceLowest: "#ffffff",
   surfaceHighest: "#e4e2df",
   onSurface: "#1b1c1a",
@@ -18,6 +19,7 @@ const Favourites = () => {
   const { handleGetFavourites, favouriteIds } = useFavourites();
   const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredId, setHoveredId] = useState(null);
 
   useEffect(() => {
     async function fetchFavourites() {
@@ -36,18 +38,31 @@ const Favourites = () => {
   const formatCurrency = (amount, currency = "INR") =>
     `${currency} ${Number(amount || 0).toLocaleString("en-IN")}`;
 
+  const visibleFavourites = favourites.filter(
+    (fav) => fav.product && favouriteIds.includes(fav.product._id),
+  );
+
   if (loading) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
         style={{ backgroundColor: tokens.surface }}
       >
-        <p
-          className="text-[11px] uppercase tracking-[0.2em]"
-          style={{ color: tokens.muted }}
-        >
-          Loading favourites...
-        </p>
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-8 h-8 border-2 rounded-full animate-spin"
+            style={{
+              borderColor: tokens.surfaceHighest,
+              borderTopColor: tokens.primary,
+            }}
+          />
+          <p
+            className="text-[10px] uppercase tracking-[0.2em]"
+            style={{ color: tokens.muted }}
+          >
+            Loading your favourites...
+          </p>
+        </div>
       </div>
     );
   }
@@ -59,16 +74,16 @@ const Favourites = () => {
         rel="stylesheet"
       />
       <div
-        className="min-h-screen pb-24"
+        className="min-h-screen selection:bg-[#C9A96E]/30"
         style={{
           backgroundColor: tokens.surface,
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-6xl mx-auto px-8 lg:px-16 pt-8 lg:pt-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 xl:px-24 pt-8 sm:pt-12 lg:pt-16 pb-24">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-6 text-[10px] uppercase tracking-[0.2em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-6 sm:mb-8 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
             <svg
@@ -86,46 +101,94 @@ const Favourites = () => {
             Back
           </button>
 
-          <h1
-            className="font-light mb-8"
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 4vw, 3rem)",
-              color: tokens.onSurface,
-            }}
-          >
-            Your Favourites
-          </h1>
-
-          {favourites.filter((fav) => fav.product && favouriteIds.includes(fav.product._id)).length === 0 ? (
-            <div className="py-24 text-center">
-              <p
-                className="text-lg mb-6"
+          <div className="flex items-end justify-between mb-8 sm:mb-12">
+            <div>
+              <span
+                className="text-[10px] uppercase tracking-[0.24em] font-medium mb-3 block"
+                style={{ color: tokens.primary }}
+              >
+                Saved Pieces
+              </span>
+              <h1
+                className="font-light leading-[1.05]"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
                   color: tokens.onSurface,
                 }}
               >
-                No favourites yet.
+                Your Favourites
+              </h1>
+            </div>
+            {visibleFavourites.length > 0 && (
+              <p
+                className="hidden sm:block text-[10px] uppercase tracking-[0.2em] font-medium"
+                style={{ color: tokens.muted }}
+              >
+                {visibleFavourites.length}{" "}
+                {visibleFavourites.length === 1 ? "piece" : "pieces"}
+              </p>
+            )}
+          </div>
+
+          {visibleFavourites.length === 0 ? (
+            <div className="py-20 sm:py-32 flex flex-col items-center text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+                style={{ backgroundColor: tokens.surfaceLow }}
+              >
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={tokens.muted}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+                </svg>
+              </div>
+              <h2
+                className="font-light mb-3"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.75rem",
+                  color: tokens.onSurface,
+                }}
+              >
+                Nothing saved yet.
+              </h2>
+              <p
+                className="text-sm max-w-xs mb-8"
+                style={{ color: tokens.secondary }}
+              >
+                Tap the heart on any piece to save it here for later.
               </p>
               <button
                 onClick={() => navigate("/products")}
-                className="px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium cursor-pointer"
+                className="px-10 py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 cursor-pointer"
                 style={{
                   backgroundColor: tokens.onSurface,
                   color: tokens.surface,
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = tokens.primary;
+                  e.currentTarget.style.color = tokens.onSurface;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = tokens.onSurface;
+                  e.currentTarget.style.color = tokens.surface;
+                }}
               >
-                Browse Products
+                Explore The Archive
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {favourites
-                .filter((fav) => fav.product && favouriteIds.includes(fav.product._id))
-                .map((fav) => {
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-10 sm:gap-y-16">
+              {visibleFavourites.map((fav) => {
                 const product = fav.product;
-
                 const firstVariant = product.variants?.[0];
                 const image =
                   firstVariant?.images?.[0]?.url ||
@@ -136,46 +199,81 @@ const Favourites = () => {
                   firstVariant?.price ||
                   product.discountedPrice ||
                   product.price;
+                const originalPrice =
+                  firstVariant?.discountedPrice?.amount ||
+                  product.discountedPrice?.amount
+                    ? firstVariant?.price || product.price
+                    : null;
+                const isHovered = hoveredId === fav._id;
 
                 return (
                   <div
                     key={fav._id}
                     onClick={() => navigate(`/product/${product._id}`)}
-                    className="cursor-pointer group"
+                    onMouseEnter={() => setHoveredId(fav._id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    className="group cursor-pointer flex flex-col"
                   >
                     <div
-                      className="relative overflow-hidden mb-3"
-                      style={{
-                        aspectRatio: "3/4",
-                        backgroundColor: tokens.surfaceHighest,
-                      }}
+                      className="aspect-[4/5] overflow-hidden mb-3 sm:mb-6 relative"
+                      style={{ backgroundColor: tokens.surfaceLow }}
                     >
                       <img
                         src={image}
                         alt={product.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute top-3 right-3">
-                        <FavouriteButton productId={product._id} size={20} />
+                      <div
+                        className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
+                        style={{ backgroundColor: "rgba(27,28,26,0.03)" }}
+                      />
+                      <div
+                        className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FavouriteButton productId={product._id} size={18} />
                       </div>
                     </div>
-                    <p
-                      className="text-sm mb-1 "
-                      style={{ color: tokens.primary, fontWeight: 500 }}
-                    >
-                      {product.brand}
-                    </p>
-                    <p
-                      className="text-sm mb-1"
-                      style={{ color: tokens.onSurface }}
-                    >
-                      {product.title}
-                    </p>
-                    <p className="text-xs" style={{ color: tokens.secondary }}>
-                      {price
-                        ? formatCurrency(price.amount, price.currency)
-                        : "—"}
-                    </p>
+
+                    <div className="flex flex-col items-center text-center px-1 sm:px-4">
+                      {product.brand && product.brand !== "Unbranded" && (
+                        <span
+                          className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-medium mb-1"
+                          style={{ color: tokens.primary }}
+                        >
+                          {product.brand}
+                        </span>
+                      )}
+                      <h3
+                        className="text-sm sm:text-lg leading-snug transition-colors duration-300 group-hover:text-[#C9A96E] line-clamp-1"
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          color: tokens.onSurface,
+                        }}
+                      >
+                        {product.title}
+                      </h3>
+
+                      <div className="mt-2 sm:mt-3 flex items-center justify-center gap-2 flex-wrap">
+                        <span
+                          className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-medium"
+                          style={{ color: tokens.onSurface }}
+                        >
+                          {formatCurrency(price?.amount, price?.currency)}
+                        </span>
+                        {originalPrice && (
+                          <span
+                            className="text-[8px] sm:text-[9px] uppercase tracking-[0.15em] line-through"
+                            style={{ color: tokens.muted }}
+                          >
+                            {formatCurrency(
+                              originalPrice.amount,
+                              originalPrice.currency,
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
