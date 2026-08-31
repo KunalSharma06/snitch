@@ -135,30 +135,37 @@ const Cart = () => {
   //   razorpayInstance.open();
   // }
 
-  const confirmRemoveItem = async () => {
-    if (!removeTarget) return;
-    setIsRemoving(true);
-    try {
-      const { product, variant: variantId } = removeTarget;
-      const pid = product?._id || product;
-      const vid = variantId?._id || variantId;
-      await handleRemoveItem({ productId: pid, variantId: vid });
-      setToast({
-        open: true,
-        message: `Successfully removed ${product?.title || "item"} from your selection.`,
-      });
-      setTimeout(() => setToast({ open: false, message: "" }), 3000);
-      setRemoveTarget(null);
-    } catch (err) {
-      setToast({
-        open: true,
-        message: err?.response?.data?.message || "Failed to remove item.",
-      });
-      setTimeout(() => setToast({ open: false, message: "" }), 3000);
-    } finally {
-      setIsRemoving(false);
-    }
-  };
+ const confirmRemoveItem = async () => {
+   if (!removeTarget) return;
+   setIsRemoving(true);
+   try {
+     const { product, variant: variantId } = removeTarget;
+     const pid = product?._id || product;
+     const vid = variantId?._id || variantId;
+     const data = await handleRemoveItem({ productId: pid, variantId: vid });
+     if (data?.success) {
+       setToast({
+         open: true,
+         message: `Successfully removed ${product?.title || "item"} from your selection.`,
+       });
+       setRemoveTarget(null);
+     } else {
+       setToast({
+         open: true,
+         message: data?.message || "Couldn't remove that item.",
+       });
+     }
+     setTimeout(() => setToast({ open: false, message: "" }), 3000);
+   } catch (err) {
+     setToast({
+       open: true,
+       message: err?.response?.data?.message || "Failed to remove item.",
+     });
+     setTimeout(() => setToast({ open: false, message: "" }), 3000);
+   } finally {
+     setIsRemoving(false);
+   }
+ };
 
   /* ─── Empty state ─── */
   if (!cart?.items?.length) {

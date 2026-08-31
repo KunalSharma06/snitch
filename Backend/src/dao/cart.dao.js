@@ -18,9 +18,12 @@ export async function getCartDetails(userId) {
           as: "items.product",
         },
       },
-      { $unwind: { path: "$items.product" } },
+      { $unwind: { path: "$items.product", preserveNullAndEmptyArrays: true } },
       {
-        $unwind: { path: "$items.product.variants" },
+        $unwind: {
+          path: "$items.product.variants",
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $match: {

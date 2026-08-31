@@ -1,4 +1,14 @@
-import { addItem, getCart, incrementCartItemApi, decrementCartItemApi, removeItemApi, createOrderApi, verifyCartOrderApi, getUserOrdersApi, cancelOrderApi} from "../service/cart.api.js";
+import {
+  addItem,
+  getCart,
+  incrementCartItemApi,
+  decrementCartItemApi,
+  removeItemApi,
+  createOrderApi,
+  verifyCartOrderApi,
+  getUserOrdersApi,
+  cancelOrderApi,
+} from "../service/cart.api.js";
 import { useDispatch } from "react-redux";
 import { setCart, incrementCartItem, removeItem } from "../state/cart.slice.js";
 
@@ -7,19 +17,17 @@ export const useCart = () => {
 
   async function handleAddItem({ productId, variantId }) {
     const data = await addItem({ productId, variantId });
-    // Update Redux state so the cart badge count updates immediately
     if (data?.cart?.items) {
       dispatch(setCart(data.cart));
     } else {
-      // Fallback: push a minimal item so badge increments
-      dispatch(addItemToCart({ productId, variantId, quantity: 1 }));
+      await handleGetCart();
     }
     return data;
   }
 
   async function handleGetCart() {
     const data = await getCart();
-    dispatch(setCart(data.cart))
+    dispatch(setCart(data.cart));
   }
 
   async function handleIncrementCartItem({ productId, variantId }) {
@@ -56,8 +64,16 @@ export const useCart = () => {
     return data.order;
   }
 
-  async function handleVerifyCartOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
-    const data = await verifyCartOrderApi({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+  async function handleVerifyCartOrder({
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+  }) {
+    const data = await verifyCartOrderApi({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
     return data.success;
   }
 
@@ -71,5 +87,15 @@ export const useCart = () => {
     return data;
   }
 
-  return { handleAddItem, handleGetCart, handleIncrementCartItem, handleDecrementCartItem, handleRemoveItem, handleCreateCartOrder, handleVerifyCartOrder, handleGetUserOrders, handleCancelOrder};
-}
+  return {
+    handleAddItem,
+    handleGetCart,
+    handleIncrementCartItem,
+    handleDecrementCartItem,
+    handleRemoveItem,
+    handleCreateCartOrder,
+    handleVerifyCartOrder,
+    handleGetUserOrders,
+    handleCancelOrder,
+  };
+};
