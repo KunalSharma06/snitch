@@ -104,23 +104,6 @@ export const addToCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   const user = req.user;
-  const rawCart = await cartModel.findOne({ user: user._id });
-  if (rawCart && rawCart.items.length > 0) {
-    let changed = false;
-    for (const item of rawCart.items) {
-      const product = await productModel.findOne({
-        _id: item.product,
-        "variants._id": item.variant,
-      });
-      if (!product) {
-        rawCart.items = rawCart.items.filter(
-          (i) => i._id.toString() !== item._id.toString(),
-        );
-        changed = true;
-      }
-    }
-    if (changed) await rawCart.save();
-  }
 
   let cart = await getCartDetails(user._id);
 
@@ -133,7 +116,7 @@ export const getCart = async (req, res) => {
     success: true,
     cart,
   });
-};
+}
 
 export const incrementCartItemQuantity = async (req, res) => {
   const { productId, variantId } = req.params;
