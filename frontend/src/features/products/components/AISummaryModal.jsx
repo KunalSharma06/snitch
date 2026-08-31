@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import axios from "axios";
 
 const SPARKLE_ICON = (
@@ -27,16 +28,30 @@ const AISummaryModal = ({ productId, productTitle, variantId }) => {
 
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto";
+      const scrollY = document.body.style.top;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
     }
 
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
-
   const fetchSummary = async () => {
     setLoading(true);
     setError(null);
@@ -114,147 +129,266 @@ const AISummaryModal = ({ productId, productTitle, variantId }) => {
         AI Review
       </button>
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6"
-          style={{ backgroundColor: "rgba(27,28,26,0.60)", backdropFilter: "blur(4px)" }}
-          onClick={handleClose}
-        >
+      {isOpen &&
+        createPortal(
           <div
-            className="w-full max-w-lg max-h-[80vh] flex flex-col relative"
+            className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6"
             style={{
-              backgroundColor: "#fbf9f6",
-              fontFamily: "'Inter', sans-serif",
-              zIndex: 10000,
-              isolation: "isolate",
+              backgroundColor: "rgba(27,28,26,0.60)",
+              backdropFilter: "blur(4px)",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleClose}
           >
-            <div className="flex items-center justify-between px-8 py-5 flex-shrink-0" style={{ borderBottom: "1px solid #e4e2df" }}>
-              <div className="flex items-center gap-3 min-w-0">
-                <span style={{ color: "#C9A96E", flexShrink: 0 }}>{SPARKLE_ICON}</span>
-                <div className="min-w-0">
-                  <p className="text-[9px] uppercase tracking-[0.25em] font-medium" style={{ color: "#C9A96E" }}>
-                    AI Style Advisor
-                  </p>
-                  <p className="text-sm font-light leading-snug mt-0.5 truncate max-w-[260px]" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#1b1c1a" }}>
-                    {productTitle}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="w-8 h-8 flex items-center justify-center hover:opacity-60 transition-opacity flex-shrink-0"
-                style={{ color: "#7A6E63", cursor: "pointer", background: "none", border: "none" }}
+            <div
+              className="w-full max-w-lg max-h-[80vh] flex flex-col relative"
+              style={{
+                backgroundColor: "#fbf9f6",
+                fontFamily: "'Inter', sans-serif",
+                zIndex: 10000,
+                isolation: "isolate",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="flex items-center justify-between px-8 py-5 flex-shrink-0"
+                style={{ borderBottom: "1px solid #e4e2df" }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="px-8 py-5 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#C9A96E #e4e2df" }}>
-              {loading ? (
-                <div className="flex flex-col items-center gap-5 w-full py-8">
-                  <div className="relative w-full h-1 overflow-hidden" style={{ backgroundColor: "#e4e2df" }}>
-                    <div className="absolute inset-y-0 left-0 w-1/3 rounded-full" style={{ backgroundColor: "#C9A96E", animation: "ai-loading-bar 1.4s ease-in-out infinite" }} />
-                  </div>
-                  <p className="text-[10px] uppercase tracking-[0.25em] animate-pulse" style={{ color: "#B5ADA3" }}>
-                    Analysing product...
-                  </p>
-                </div>
-              ) : error ? (
-                <div className="text-center py-8">
-                  <p className="text-xs mb-4" style={{ color: "#c0392b" }}>{error}</p>
-                  <button onClick={fetchSummary} className="text-[10px] uppercase tracking-[0.2em] underline cursor-pointer" style={{ color: "#7A6E63", background: "none", border: "none" }}>
-                    Try Again
-                  </button>
-                </div>
-              ) : summary ? (
-                <div className="w-full">
-                  <span className="block text-4xl font-light leading-none mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", color: "#e4e2df" }}>
-                    "
+                <div className="flex items-center gap-3 min-w-0">
+                  <span style={{ color: "#C9A96E", flexShrink: 0 }}>
+                    {SPARKLE_ICON}
                   </span>
-                  <p className="text-[13px] leading-relaxed" style={{ color: "#1b1c1a", lineHeight: "1.75", whiteSpace: "pre-line" }}>
-                    {summary}
-                  </p>
-
-                  {/* Follow-up answers */}
-                  {followUps.length > 0 && (
-                    <div className="flex flex-col gap-4 mt-6">
-                      {followUps.map((f, idx) => (
-                        <div key={idx} className="pl-4" style={{ borderLeft: "2px solid #C9A96E" }}>
-                          <p className="text-[11px] font-medium mb-1" style={{ color: "#1b1c1a" }}>{f.question}</p>
-                          {f.loading ? (
-                            <p className="text-[11px]" style={{ color: "#B5ADA3" }}>Thinking...</p>
-                          ) : (
-                            <p className="text-[12px] leading-relaxed" style={{ color: "#7A6E63" }}>{f.answer}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Quick question chips */}
-                  {suggestedQuestions.length > 0 && (
-                    <div className="mt-6">
-                      <p className="text-[9px] uppercase tracking-[0.2em] mb-3" style={{ color: "#B5ADA3" }}>
-                        Ask more
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {suggestedQuestions
-                          .filter((q) => !followUps.some((f) => f.question === q))
-                          .map((q) => (
-                            <button
-                              key={q}
-                              onClick={() => askFollowUp(q)}
-                              className="px-3 py-1.5 text-[10px] transition-all duration-200 border cursor-pointer"
-                              style={{ borderColor: "#d0c5b5", color: "#1b1c1a", background: "transparent" }}
-                              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#C9A96E")}
-                              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#d0c5b5")}
-                            >
-                              {q}
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-center mt-6">
-                    <button
-                      onClick={() => {
-                        setFollowUps([]);
-                        fetchSummary();
-                      }}
-                      disabled={loading}
-                      className="text-[10px] uppercase tracking-[0.2em] underline cursor-pointer hover:opacity-60 transition-opacity"
-                      style={{ color: "#7A6E63", background: "none", border: "none" }}
+                  <div className="min-w-0">
+                    <p
+                      className="text-[9px] uppercase tracking-[0.25em] font-medium"
+                      style={{ color: "#C9A96E" }}
                     >
-                      Regenerate
-                    </button>
-                      </div>
-                      
-                  <div className="flex items-center gap-2 mt-5">
-                    <div className="h-px flex-1" style={{ backgroundColor: "#e4e2df" }} />
-                    <span className="text-[9px] uppercase tracking-[0.2em] whitespace-nowrap" style={{ color: "#B5ADA3" }}>
-                      Powered by Mistral AI
-                    </span>
-                    <div className="h-px flex-1" style={{ backgroundColor: "#e4e2df" }} />
+                      AI Style Advisor
+                    </p>
+                    <p
+                      className="text-sm font-light leading-snug mt-0.5 truncate max-w-[260px]"
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        color: "#1b1c1a",
+                      }}
+                    >
+                      {productTitle}
+                    </p>
                   </div>
                 </div>
-              ) : null}
-            </div>
-          </div>
+                <button
+                  onClick={handleClose}
+                  className="w-8 h-8 flex items-center justify-center hover:opacity-60 transition-opacity flex-shrink-0"
+                  style={{
+                    color: "#7A6E63",
+                    cursor: "pointer",
+                    background: "none",
+                    border: "none",
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path strokeLinecap="round" d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-          <style>{`
+              <div
+                className="px-8 py-5 overflow-y-auto"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#C9A96E #e4e2df",
+                }}
+              >
+                {loading ? (
+                  <div className="flex flex-col items-center gap-5 w-full py-8">
+                    <div
+                      className="relative w-full h-1 overflow-hidden"
+                      style={{ backgroundColor: "#e4e2df" }}
+                    >
+                      <div
+                        className="absolute inset-y-0 left-0 w-1/3 rounded-full"
+                        style={{
+                          backgroundColor: "#C9A96E",
+                          animation: "ai-loading-bar 1.4s ease-in-out infinite",
+                        }}
+                      />
+                    </div>
+                    <p
+                      className="text-[10px] uppercase tracking-[0.25em] animate-pulse"
+                      style={{ color: "#B5ADA3" }}
+                    >
+                      Analysing product...
+                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8">
+                    <p className="text-xs mb-4" style={{ color: "#c0392b" }}>
+                      {error}
+                    </p>
+                    <button
+                      onClick={fetchSummary}
+                      className="text-[10px] uppercase tracking-[0.2em] underline cursor-pointer"
+                      style={{
+                        color: "#7A6E63",
+                        background: "none",
+                        border: "none",
+                      }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : summary ? (
+                  <div className="w-full">
+                    <span
+                      className="block text-4xl font-light leading-none mb-2"
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        color: "#e4e2df",
+                      }}
+                    >
+                      "
+                    </span>
+                    <p
+                      className="text-[13px] leading-relaxed"
+                      style={{
+                        color: "#1b1c1a",
+                        lineHeight: "1.75",
+                        whiteSpace: "pre-line",
+                      }}
+                    >
+                      {summary}
+                    </p>
+
+                    {/* Follow-up answers */}
+                    {followUps.length > 0 && (
+                      <div className="flex flex-col gap-4 mt-6">
+                        {followUps.map((f, idx) => (
+                          <div
+                            key={idx}
+                            className="pl-4"
+                            style={{ borderLeft: "2px solid #C9A96E" }}
+                          >
+                            <p
+                              className="text-[11px] font-medium mb-1"
+                              style={{ color: "#1b1c1a" }}
+                            >
+                              {f.question}
+                            </p>
+                            {f.loading ? (
+                              <p
+                                className="text-[11px]"
+                                style={{ color: "#B5ADA3" }}
+                              >
+                                Thinking...
+                              </p>
+                            ) : (
+                              <p
+                                className="text-[12px] leading-relaxed"
+                                style={{ color: "#7A6E63" }}
+                              >
+                                {f.answer}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Quick question chips */}
+                    {suggestedQuestions.length > 0 && (
+                      <div className="mt-6">
+                        <p
+                          className="text-[9px] uppercase tracking-[0.2em] mb-3"
+                          style={{ color: "#B5ADA3" }}
+                        >
+                          Ask more
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestedQuestions
+                            .filter(
+                              (q) => !followUps.some((f) => f.question === q),
+                            )
+                            .map((q) => (
+                              <button
+                                key={q}
+                                onClick={() => askFollowUp(q)}
+                                className="px-3 py-1.5 text-[10px] transition-all duration-200 border cursor-pointer"
+                                style={{
+                                  borderColor: "#d0c5b5",
+                                  color: "#1b1c1a",
+                                  background: "transparent",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.borderColor =
+                                    "#C9A96E")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.borderColor =
+                                    "#d0c5b5")
+                                }
+                              >
+                                {q}
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-center mt-6">
+                      <button
+                        onClick={() => {
+                          setFollowUps([]);
+                          fetchSummary();
+                        }}
+                        disabled={loading}
+                        className="text-[10px] uppercase tracking-[0.2em] underline cursor-pointer hover:opacity-60 transition-opacity"
+                        style={{
+                          color: "#7A6E63",
+                          background: "none",
+                          border: "none",
+                        }}
+                      >
+                        Regenerate
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-5">
+                      <div
+                        className="h-px flex-1"
+                        style={{ backgroundColor: "#e4e2df" }}
+                      />
+                      <span
+                        className="text-[9px] uppercase tracking-[0.2em] whitespace-nowrap"
+                        style={{ color: "#B5ADA3" }}
+                      >
+                        Powered by Mistral AI
+                      </span>
+                      <div
+                        className="h-px flex-1"
+                        style={{ backgroundColor: "#e4e2df" }}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <style>{`
             @keyframes ai-loading-bar { 0% { left: -33%; } 100% { left: 100%; } }
             div::-webkit-scrollbar { width: 5px; }
             div::-webkit-scrollbar-track { background: #e4e2df; }
             div::-webkit-scrollbar-thumb { background: #C9A96E; }
             div::-webkit-scrollbar-thumb:hover { background: #a98b55; }
           `}</style>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };
