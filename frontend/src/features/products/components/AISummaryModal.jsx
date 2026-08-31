@@ -25,6 +25,18 @@ const AISummaryModal = ({ productId, productTitle, variantId }) => {
     setIsOpen(false);
   }, [productId, variantId]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
+
   const fetchSummary = async () => {
     setLoading(true);
     setError(null);
