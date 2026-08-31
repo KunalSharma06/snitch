@@ -6,6 +6,7 @@ const cartSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
     required: true,
+    unique: true,
   },
   items: [
     {
@@ -20,12 +21,12 @@ const cartSchema = new mongoose.Schema({
       },
       quantity: {
         type: Number,
-        default: 1
+        default: 1,
       },
       price: {
         type: priceSchema,
         required: true,
-      }
+      },
     },
   ],
 });
