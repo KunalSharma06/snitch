@@ -308,7 +308,7 @@ const Cart = () => {
                     >
                       {/* Product Image */}
                       <Link
-                        to={`/products/${product?._id}`}
+                        to={`/product/${product?._id}`}
                         className="flex-shrink-0 overflow-hidden block cursor-pointer"
                         style={{
                           width: "clamp(100px, 15vw, 160px)",
@@ -343,7 +343,7 @@ const Cart = () => {
                             </span>
                           )}
                           {/* Title */}
-                          <Link to={`/products/${product?._id}`}>
+                          <Link to={`/product/${product?._id}`}>
                             <h2
                               className="font-light leading-tight mb-3 hover:opacity-70 transition-opacity cursor-pointer"
                               style={{
