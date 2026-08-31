@@ -307,8 +307,9 @@ const Cart = () => {
                       style={{ backgroundColor: tokens.surfaceLow }}
                     >
                       {/* Product Image */}
-                      <div
-                        className="flex-shrink-0 overflow-hidden"
+                      <Link
+                        to={`/products/${product?._id}`}
+                        className="flex-shrink-0 overflow-hidden block cursor-pointer"
                         style={{
                           width: "clamp(100px, 15vw, 160px)",
                           aspectRatio: "4/5",
@@ -327,7 +328,7 @@ const Cart = () => {
                             style={{ backgroundColor: tokens.surfaceHigh }}
                           />
                         )}
-                      </div>
+                      </Link>
 
                       {/* Product Info */}
                       <div className="flex-1 flex flex-col justify-between">
@@ -342,16 +343,18 @@ const Cart = () => {
                             </span>
                           )}
                           {/* Title */}
-                          <h2
-                            className="font-light leading-tight mb-3"
-                            style={{
-                              fontFamily: "'Cormorant Garamond', serif",
-                              fontSize: "clamp(1.2rem, 2.5vw, 1.6rem)",
-                              color: tokens.onSurface,
-                            }}
-                          >
-                            {product?.title}
-                          </h2>
+                          <Link to={`/products/${product?._id}`}>
+                            <h2
+                              className="font-light leading-tight mb-3 hover:opacity-70 transition-opacity cursor-pointer"
+                              style={{
+                                fontFamily: "'Cormorant Garamond', serif",
+                                fontSize: "clamp(1.2rem, 2.5vw, 1.6rem)",
+                                color: tokens.onSurface,
+                              }}
+                            >
+                              {product?.title}
+                            </h2>
+                          </Link>
 
                           {/* Variant Attribute Chips */}
                           {Object.keys(attributes).length > 0 && (
