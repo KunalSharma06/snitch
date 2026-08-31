@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useCart } from "../hook/useCart";
 import { Link, useNavigate } from "react-router";
 import { useRazorpay } from "react-razorpay";
-import ConfirmModal from "../../Shared/Components/ConfirmModel"; 
+import ConfirmModal from "../../Shared/Components/ConfirmModel";
 
 /* ─── Inline styles & tokens matching the "Avenue Montaigne" design system ─── */
 const tokens = {
@@ -47,43 +47,43 @@ const Cart = () => {
 
   /* Sync local qty state when cartItems arrive */
 
-    const changeQty = async (id, delta) => {
-      const item = cart.items.find((item) => item._id === id);
-      if (!item) return;
+  const changeQty = async (id, delta) => {
+    const item = cart.items.find((item) => item._id === id);
+    if (!item) return;
 
-      const { product, variant: variantId } = item;
-      const currentQty = item.quantity ?? 1;
-      const newQty = currentQty + delta;
-      if (newQty < 1) return;
+    const { product, variant: variantId } = item;
+    const currentQty = item.quantity ?? 1;
+    const newQty = currentQty + delta;
+    if (newQty < 1) return;
 
-      // Check stock limit on frontend
-      const variantDetail = getVariantDetails(product, variantId);
-      const stock = variantDetail?.stock;
-      if (delta > 0 && stock !== undefined && newQty > stock) {
-        setToast({
-          open: true,
-          message: `Only ${stock} items available in stock.`,
-        });
-        setTimeout(() => setToast({ open: false, message: "" }), 3000);
-        return;
+    // Check stock limit on frontend
+    const variantDetail = getVariantDetails(product, variantId);
+    const stock = variantDetail?.stock;
+    if (delta > 0 && stock !== undefined && newQty > stock) {
+      setToast({
+        open: true,
+        message: `Only ${stock} items available in stock.`,
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+      return;
+    }
+
+    try {
+      const pid = product?._id || product;
+      const vid = variantId?._id || variantId;
+      if (delta > 0) {
+        await handleIncrementCartItem({ productId: pid, variantId: vid });
+      } else {
+        await handleDecrementCartItem({ productId: pid, variantId: vid });
       }
-
-      try {
-        const pid = product?._id || product;
-        const vid = variantId?._id || variantId;
-        if (delta > 0) {
-          await handleIncrementCartItem({ productId: pid, variantId: vid });
-        } else {
-          await handleDecrementCartItem({ productId: pid, variantId: vid });
-        }
-      } catch (err) {
-        setToast({
-          open: true,
-          message: err?.response?.data?.message || "Failed to update quantity.",
-        });
-        setTimeout(() => setToast({ open: false, message: "" }), 3000);
-      }
-    };
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err?.response?.data?.message || "Failed to update quantity.",
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+    }
+  };
 
   /* ─── Derived totals ─── */
 
@@ -135,37 +135,37 @@ const Cart = () => {
   //   razorpayInstance.open();
   // }
 
- const confirmRemoveItem = async () => {
-   if (!removeTarget) return;
-   setIsRemoving(true);
-   try {
-     const { product, variant: variantId } = removeTarget;
-     const pid = product?._id || product;
-     const vid = variantId?._id || variantId;
-     const data = await handleRemoveItem({ productId: pid, variantId: vid });
-     if (data?.success) {
-       setToast({
-         open: true,
-         message: `Successfully removed ${product?.title || "item"} from your selection.`,
-       });
-       setRemoveTarget(null);
-     } else {
-       setToast({
-         open: true,
-         message: data?.message || "Couldn't remove that item.",
-       });
-     }
-     setTimeout(() => setToast({ open: false, message: "" }), 3000);
-   } catch (err) {
-     setToast({
-       open: true,
-       message: err?.response?.data?.message || "Failed to remove item.",
-     });
-     setTimeout(() => setToast({ open: false, message: "" }), 3000);
-   } finally {
-     setIsRemoving(false);
-   }
- };
+  const confirmRemoveItem = async () => {
+    if (!removeTarget) return;
+    setIsRemoving(true);
+    try {
+      const { product, variant: variantId } = removeTarget;
+      const pid = product?._id || product;
+      const vid = variantId?._id || variantId;
+      const data = await handleRemoveItem({ productId: pid, variantId: vid });
+      if (data?.success) {
+        setToast({
+          open: true,
+          message: `Successfully removed ${product?.title || "item"} from your selection.`,
+        });
+        setRemoveTarget(null);
+      } else {
+        setToast({
+          open: true,
+          message: data?.message || "Couldn't remove that item.",
+        });
+      }
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err?.response?.data?.message || "Failed to remove item.",
+      });
+      setTimeout(() => setToast({ open: false, message: "" }), 3000);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   /* ─── Empty state ─── */
   if (!cart?.items?.length) {
@@ -239,6 +239,26 @@ const Cart = () => {
       >
         {/* ── Main Content ── */}
         <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-12 lg:pt-20">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            style={{ color: tokens.secondary }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
             {/* ═══════════════════════════════════════════════
                             LEFT COLUMN — Cart Items (65%)

@@ -20,90 +20,54 @@ export const addToCart = async (req, res) => {
   });
 
   if (!product) {
-    return res.status(404).json({
-      message: "Product or variant not found",
-      success: false,
-    });
+    return res
+      .status(404)
+      .json({ message: "Product or variant not found", success: false });
   }
 
   const stock = await stockofVariant(productId, variantId);
 
-  // Ensure cart exists first (idempotent — safe even if raced)
+  // make sure cart exists (only once, never duplicate)
   await cartModel.updateOne(
     { user: req.user._id },
     { $setOnInsert: { user: req.user._id, items: [] } },
     { upsert: true },
   );
 
-  // Fresh read of current quantity for this exact product+variant combo
-  const existingCart = await cartModel.findOne(
-    {
-      user: req.user._id,
-      items: { $elemMatch: { product: productId, variant: variantId } },
-    },
-    { "items.$": 1 },
+  const cart = await cartModel.findOne({ user: req.user._id });
+  const existingItem = cart.items.find(
+    (i) =>
+      i.product.toString() === productId && i.variant?.toString() === variantId,
   );
-  const currentQty = existingCart?.items?.[0]?.quantity || 0;
+  const currentQty = existingItem?.quantity || 0;
 
   if (currentQty + quantity > stock) {
     return res.status(400).json({
-      message: `Only ${stock} items left in stock. You already have ${currentQty} in cart`,
+      message: `Only ${stock} left in stock. You already have ${currentQty} in cart`,
       success: false,
     });
   }
 
-  let updatedCart;
-
-  if (currentQty > 0) {
-    // Item already exists — atomically increment its quantity
-    updatedCart = await cartModel.findOneAndUpdate(
-      {
-        user: req.user._id,
-        items: { $elemMatch: { product: productId, variant: variantId } },
-      },
-      { $inc: { "items.$.quantity": quantity } },
-      { new: true },
-    );
+  if (existingItem) {
+    existingItem.quantity += quantity;
   } else {
-    // Item doesn't exist yet — atomically push, guarded against a concurrent duplicate push
-    updatedCart = await cartModel.findOneAndUpdate(
-      {
-        user: req.user._id,
-        items: {
-          $not: {
-            $elemMatch: { product: productId, variant: variantId },
-          },
-        },
-      },
-      {
-        $push: {
-          items: {
-            product: productId,
-            variant: variantId,
-            quantity,
-            price: product.price,
-          },
-        },
-      },
-      { new: true },
-    );
-
-    // If the guard blocked it, a concurrent request already added this item — just resync
-    if (!updatedCart) {
-      updatedCart = await cartModel.findOne({ user: req.user._id });
-    }
+    cart.items.push({
+      product: productId,
+      variant: variantId,
+      quantity,
+      price: product.price,
+    });
   }
 
-  let finalCart = await getCartDetails(req.user._id);
-  if (!finalCart) {
-    finalCart = {
-      _id: updatedCart._id,
-      user: updatedCart.user,
-      items: [],
-      totalPrice: 0,
-      currency: "INR",
-    };
-  }
+  await cart.save();
+
+  const finalCart = (await getCartDetails(req.user._id)) || {
+    _id: cart._id,
+    user: cart.user,
+    items: [],
+    totalPrice: 0,
+    currency: "INR",
+  };
 
   return res.status(200).json({
     message: "Product added to cart successfully",
