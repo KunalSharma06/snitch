@@ -238,10 +238,10 @@ const Cart = () => {
         }}
       >
         {/* ── Main Content ── */}
-        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-12 lg:pt-20">
+        <div className="max-w-7xl mx-auto px-8 lg:px-16 xl:px-24 pt-6 lg:pt-8">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-6 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
             <svg
