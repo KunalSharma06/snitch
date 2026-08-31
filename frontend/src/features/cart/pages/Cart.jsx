@@ -35,7 +35,7 @@ const Cart = () => {
   const user = useSelector((state) => state.auth.user);
 
   /* Local quantity state — key: cartItem._id, value: number */
-  const [quantities, setQuantities] = useState({});
+  // const [quantities, setQuantities] = useState({});
   /* Toast state */
   const [toast, setToast] = useState({ open: false, message: "" });
   const [removeTarget, setRemoveTarget] = useState(null);
@@ -47,54 +47,43 @@ const Cart = () => {
 
   /* Sync local qty state when cartItems arrive */
 
-  const changeQty = async (id, delta) => {
-    const item = cart.items.find((item) => item._id === id);
-    if (!item) return;
+    const changeQty = async (id, delta) => {
+      const item = cart.items.find((item) => item._id === id);
+      if (!item) return;
 
-    const { product, variant: variantId } = item;
-    const currentQty = quantities[id] ?? item.quantity ?? 1;
-    const newQty = currentQty + delta;
-    if (newQty < 1) return;
+      const { product, variant: variantId } = item;
+      const currentQty = item.quantity ?? 1;
+      const newQty = currentQty + delta;
+      if (newQty < 1) return;
 
-    // Check stock limit on frontend
-    const variantDetail = getVariantDetails(product, variantId);
-    const stock = variantDetail?.stock;
-    if (delta > 0 && stock !== undefined && newQty > stock) {
-      setToast({
-        open: true,
-        message: `Only ${stock} items available in stock.`,
-      });
-      setTimeout(() => setToast({ open: false, message: "" }), 3000);
-      return;
-    }
-
-    // Optimistically update local UI state
-    setQuantities((prev) => ({
-      ...prev,
-      [id]: newQty,
-    }));
-
-    try {
-      const pid = product?._id || product;
-      const vid = variantId?._id || variantId;
-      if (delta > 0) {
-        await handleIncrementCartItem({ productId: pid, variantId: vid });
-      } else {
-        await handleDecrementCartItem({ productId: pid, variantId: vid });
+      // Check stock limit on frontend
+      const variantDetail = getVariantDetails(product, variantId);
+      const stock = variantDetail?.stock;
+      if (delta > 0 && stock !== undefined && newQty > stock) {
+        setToast({
+          open: true,
+          message: `Only ${stock} items available in stock.`,
+        });
+        setTimeout(() => setToast({ open: false, message: "" }), 3000);
+        return;
       }
-    } catch (err) {
-      // Revert if API failed
-      setQuantities((prev) => ({
-        ...prev,
-        [id]: currentQty,
-      }));
-      setToast({
-        open: true,
-        message: err?.response?.data?.message || "Failed to update quantity.",
-      });
-      setTimeout(() => setToast({ open: false, message: "" }), 3000);
-    }
-  };
+
+      try {
+        const pid = product?._id || product;
+        const vid = variantId?._id || variantId;
+        if (delta > 0) {
+          await handleIncrementCartItem({ productId: pid, variantId: vid });
+        } else {
+          await handleDecrementCartItem({ productId: pid, variantId: vid });
+        }
+      } catch (err) {
+        setToast({
+          open: true,
+          message: err?.response?.data?.message || "Failed to update quantity.",
+        });
+        setTimeout(() => setToast({ open: false, message: "" }), 3000);
+      }
+    };
 
   /* ─── Derived totals ─── */
 
@@ -280,7 +269,7 @@ const Cart = () => {
                   const displayPrice = variantDetail?.discountedPrice?.amount
                     ? variantDetail.discountedPrice
                     : basePrice;
-                  const qty = quantities[_id] ?? item.quantity ?? 1;
+                  const qty = item.quantity ?? 1;
                   const attributes = variantDetail?.attributes ?? {};
                   const stock = variantDetail?.stock;
 
