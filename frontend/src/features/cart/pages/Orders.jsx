@@ -245,13 +245,58 @@ useEffect(() => {
                         Placed on {formatDate(order.createdAt)}
                       </p>
                       {order.estimatedDelivery && (
-                        <p
-                          className="text-[10px] uppercase tracking-[0.15em] mt-1"
-                          style={{ color: tokens.secondary }}
-                        >
-                          Estimated delivery:{" "}
-                          {formatDate(order.estimatedDelivery)}
-                        </p>
+                        <div className="mt-1">
+                          {(() => {
+                            const isDelivered =
+                              order.fulfillmentStatus === "delivered";
+                            const isCancelled =
+                              order.status === "cancelled" ||
+                              order.fulfillmentStatus === "cancelled";
+                            const estDate = new Date(order.estimatedDelivery);
+                            const now = new Date();
+                            const daysLate = Math.floor(
+                              (now - estDate) / (1000 * 60 * 60 * 24),
+                            );
+                            const isDelayed =
+                              !isDelivered && !isCancelled && daysLate > 0;
+
+                            if (isDelayed) {
+                              return (
+                                <div className="flex items-center gap-1.5">
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#c0392b"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                  >
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                  </svg>
+                                  <p
+                                    className="text-[10px] uppercase tracking-[0.15em] font-medium"
+                                    style={{ color: "#c0392b" }}
+                                  >
+                                    Delivery delayed by {daysLate}{" "}
+                                    {daysLate === 1 ? "day" : "days"} — sorry,
+                                    we'll deliver shortly
+                                  </p>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <p
+                                className="text-[10px] uppercase tracking-[0.15em]"
+                                style={{ color: tokens.secondary }}
+                              >
+                                Estimated delivery:{" "}
+                                {formatDate(order.estimatedDelivery)}
+                              </p>
+                            );
+                          })()}
+                        </div>
                       )}
                     </div>
                     <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5">
