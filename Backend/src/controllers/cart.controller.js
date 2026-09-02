@@ -647,6 +647,14 @@ export const updateFulfillmentStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    if (order.fulfillmentStatus === "delivered") {
+       return res.status(400).json({
+         message:
+           "This order has already been delivered and cannot be changed.",
+       });
+     }
+
+
     order.fulfillmentStatus = fulfillmentStatus;
 
     // Cancelling fulfillment also cancels the order overall

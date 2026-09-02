@@ -457,6 +457,16 @@ const AdminOrders = () => {
                           >
                             Cancelled
                           </span>
+                        ) : fulfillment === "delivered" ? (
+                          <span
+                            className="text-[10px] uppercase tracking-wider font-bold px-3 py-1.5"
+                            style={{
+                              color: FULFILLMENT_COLORS.delivered,
+                              backgroundColor: "#eaf6ea",
+                            }}
+                          >
+                            Delivered
+                          </span>
                         ) : (
                           <select
                             value={fulfillment}
