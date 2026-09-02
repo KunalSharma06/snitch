@@ -66,7 +66,6 @@ const AdminOrders = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
-  
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -148,21 +147,21 @@ const AdminOrders = () => {
         rel="stylesheet"
       />
       <div
-        className="min-h-screen pb-24"
+        className="min-h-screen pb-16 sm:pb-24"
         style={{
           backgroundColor: tokens.surface,
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div className="max-w-6xl mx-auto px-8 lg:px-16 pt-12 lg:pt-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-16 pt-6 sm:pt-12 lg:pt-16">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 mb-8 text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 mb-5 sm:mb-8 text-[10px] sm:text-[11px] uppercase tracking-[0.15em] font-medium cursor-pointer hover:opacity-70 transition-opacity"
             style={{ color: tokens.secondary }}
           >
             <svg
-              width="16"
-              height="16"
+              width="15"
+              height="15"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -179,19 +178,22 @@ const AdminOrders = () => {
             className="font-light mb-2"
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 4vw, 3rem)",
+              fontSize: "clamp(1.75rem, 5vw, 3rem)",
               color: tokens.onSurface,
             }}
           >
             Order Management
           </h1>
-          <p className="text-sm mb-10" style={{ color: tokens.secondary }}>
+          <p
+            className="text-xs sm:text-sm mb-6 sm:mb-10"
+            style={{ color: tokens.secondary }}
+          >
             View and manage all customer orders
           </p>
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-10">
               {[
                 { label: "Total Orders", value: stats.totalOrders },
                 { label: "Revenue", value: formatCurrency(stats.totalRevenue) },
@@ -206,20 +208,20 @@ const AdminOrders = () => {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className="p-5"
+                  className="p-3.5 sm:p-5"
                   style={{
                     backgroundColor: tokens.surfaceLowest,
                     boxShadow: "0 6px 20px rgba(27,28,26,0.04)",
                   }}
                 >
                   <p
-                    className="text-[9px] uppercase tracking-wider mb-2"
+                    className="text-[8px] sm:text-[9px] uppercase tracking-wider mb-1.5 sm:mb-2 truncate"
                     style={{ color: tokens.muted }}
                   >
                     {s.label}
                   </p>
                   <p
-                    className="text-2xl font-light"
+                    className="text-lg sm:text-2xl font-light truncate"
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",
                       color: tokens.onSurface,
@@ -234,7 +236,7 @@ const AdminOrders = () => {
 
           {/* Filters */}
           <div
-            className="flex flex-wrap gap-3 mb-8 items-center pb-6"
+            className="flex flex-col sm:flex-row sm:flex-wrap gap-3 mb-6 sm:mb-8 items-stretch sm:items-center pb-5 sm:pb-6"
             style={{ borderBottom: `1px solid ${tokens.surfaceHighest}` }}
           >
             <select
@@ -243,7 +245,7 @@ const AdminOrders = () => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2.5 text-[11px] uppercase tracking-wider border cursor-pointer bg-transparent"
+              className="px-4 py-2.5 text-[11px] uppercase tracking-wider border cursor-pointer bg-transparent w-full sm:w-auto"
               style={{
                 borderColor: tokens.surfaceHighest,
                 color: tokens.onSurface,
@@ -258,13 +260,13 @@ const AdminOrders = () => {
 
             <form
               onSubmit={handleSearch}
-              className="flex gap-2 flex-1 min-w-[280px]"
+              className="flex gap-2 flex-1 sm:min-w-[280px]"
             >
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, phone, or order ID"
-                className="flex-1 px-4 py-2.5 text-xs border bg-transparent focus:outline-none"
+                className="flex-1 min-w-0 px-4 py-2.5 text-xs border bg-transparent focus:outline-none"
                 style={{
                   borderColor: tokens.surfaceHighest,
                   color: tokens.onSurface,
@@ -272,7 +274,7 @@ const AdminOrders = () => {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 text-[10px] uppercase tracking-wider cursor-pointer"
+                className="flex-shrink-0 px-4 sm:px-5 py-2.5 text-[10px] uppercase tracking-wider cursor-pointer"
                 style={{
                   backgroundColor: tokens.onSurface,
                   color: tokens.surface,
@@ -293,7 +295,7 @@ const AdminOrders = () => {
               No orders found.
             </p>
           ) : (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 sm:gap-5">
               {orders.map((order) => {
                 const paymentBadge = getPaymentBadge(order);
                 const fulfillment = order.fulfillmentStatus || "processing";
@@ -301,7 +303,7 @@ const AdminOrders = () => {
                 return (
                   <div
                     key={order._id}
-                    className="p-6"
+                    className="p-4 sm:p-6"
                     style={{
                       backgroundColor: tokens.surfaceLowest,
                       boxShadow: "0 6px 20px rgba(27,28,26,0.05)",
@@ -310,20 +312,20 @@ const AdminOrders = () => {
                   >
                     {/* Top row: customer + order meta + price + payment badge */}
                     <div
-                      className="flex flex-wrap items-start justify-between gap-4 mb-5 pb-5"
+                      className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 pb-4 sm:pb-5"
                       style={{
                         borderBottom: `1px solid ${tokens.surfaceHighest}`,
                       }}
                     >
-                      <div>
+                      <div className="min-w-0">
                         <p
-                          className="text-sm font-medium mb-1"
+                          className="text-sm font-medium mb-1 truncate"
                           style={{ color: tokens.onSurface }}
                         >
                           {order.user?.fullName || "Unknown user"}
                         </p>
                         <p
-                          className="text-xs mb-2"
+                          className="text-xs mb-2 truncate"
                           style={{ color: tokens.secondary }}
                         >
                           {order.user?.email}
@@ -347,9 +349,9 @@ const AdminOrders = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 flex-shrink-0">
                         <p
-                          className="text-lg font-medium"
+                          className="text-base sm:text-lg font-medium"
                           style={{
                             fontFamily: "'Cormorant Garamond', serif",
                             color: tokens.onSurface,
@@ -361,7 +363,7 @@ const AdminOrders = () => {
                           )}
                         </p>
                         <span
-                          className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-1"
+                          className="text-[8px] sm:text-[9px] uppercase tracking-wider font-bold px-2 sm:px-2.5 py-1 whitespace-nowrap"
                           style={{
                             color: paymentBadge.color,
                             backgroundColor: paymentBadge.bg,
@@ -373,14 +375,14 @@ const AdminOrders = () => {
                     </div>
 
                     {/* Items */}
-                    <div className="flex gap-4 overflow-x-auto pb-3 mb-5">
+                    <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 mb-4 sm:mb-5 -mx-1 px-1">
                       {order.orderItems.map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex-shrink-0 flex items-center gap-2.5"
+                          className="flex-shrink-0 flex items-center gap-2 sm:gap-2.5"
                         >
                           <div
-                            className="w-11 h-14 overflow-hidden"
+                            className="w-10 h-12 sm:w-11 sm:h-14 overflow-hidden"
                             style={{ backgroundColor: tokens.surfaceHighest }}
                           >
                             <img
@@ -394,13 +396,13 @@ const AdminOrders = () => {
                           </div>
                           <div>
                             <p
-                              className="text-[11px] max-w-[120px] truncate"
+                              className="text-[10px] sm:text-[11px] max-w-[90px] sm:max-w-[120px] truncate"
                               style={{ color: tokens.onSurface }}
                             >
                               {item.title}
                             </p>
                             <p
-                              className="text-[10px]"
+                              className="text-[9px] sm:text-[10px]"
                               style={{ color: tokens.muted }}
                             >
                               Qty: {item.quantity}
@@ -412,12 +414,12 @@ const AdminOrders = () => {
 
                     {/* Bottom row: address + fulfillment control */}
                     <div
-                      className="flex flex-wrap items-center justify-between gap-4 pt-4"
+                      className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 sm:gap-4 pt-4"
                       style={{
                         borderTop: `1px solid ${tokens.surfaceHighest}`,
                       }}
                     >
-                      <div className="flex items-start gap-2 max-w-md">
+                      <div className="flex items-start gap-2 sm:max-w-md">
                         <svg
                           width="14"
                           height="14"
@@ -447,7 +449,7 @@ const AdminOrders = () => {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                         <span
                           className="text-[9px] uppercase tracking-wider"
                           style={{ color: tokens.muted }}
@@ -482,7 +484,7 @@ const AdminOrders = () => {
                             onChange={(e) =>
                               handleFulfillmentChange(order._id, e.target.value)
                             }
-                            className="text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 border cursor-pointer disabled:opacity-50"
+                            className="text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 border cursor-pointer disabled:opacity-50 max-w-full"
                             style={{
                               borderColor: FULFILLMENT_COLORS[fulfillment],
                               color: FULFILLMENT_COLORS[fulfillment],
@@ -508,11 +510,11 @@ const AdminOrders = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center gap-3 mt-10">
+            <div className="flex justify-center gap-3 mt-8 sm:mt-10">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-[10px] uppercase tracking-wider border cursor-pointer disabled:opacity-30"
+                className="px-3 sm:px-4 py-2 text-[10px] uppercase tracking-wider border cursor-pointer disabled:opacity-30"
                 style={{
                   borderColor: tokens.surfaceHighest,
                   color: tokens.onSurface,
@@ -521,7 +523,7 @@ const AdminOrders = () => {
                 Previous
               </button>
               <span
-                className="text-[10px] uppercase tracking-wider self-center"
+                className="text-[10px] uppercase tracking-wider self-center whitespace-nowrap"
                 style={{ color: tokens.secondary }}
               >
                 Page {page} of {totalPages}
@@ -529,7 +531,7 @@ const AdminOrders = () => {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 text-[10px] uppercase tracking-wider border cursor-pointer disabled:opacity-30"
+                className="px-3 sm:px-4 py-2 text-[10px] uppercase tracking-wider border cursor-pointer disabled:opacity-30"
                 style={{
                   borderColor: tokens.surfaceHighest,
                   color: tokens.onSurface,
