@@ -66,6 +66,7 @@ const AdminOrders = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
+  
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -101,6 +102,13 @@ const AdminOrders = () => {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    if (search === "") {
+      setPage(1);
+      fetchOrders();
+    }
+  }, [search]);
 
   const handleSearch = (e) => {
     e.preventDefault();
