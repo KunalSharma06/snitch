@@ -2,7 +2,7 @@ import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
 import { stockofVariant } from "../dao/product.dao.js";
 import mongoose from "mongoose";
-const { createOrder } = await import('../services/payment.service.js');
+const { createOrder } = await import("../services/payment.service.js");
 import { getCartDetails } from "../dao/cart.dao.js";
 import paymentModel from "../models/payment.model.js";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
@@ -90,7 +90,7 @@ export const getCart = async (req, res) => {
     success: true,
     cart,
   });
-}
+};
 
 export const incrementCartItemQuantity = async (req, res) => {
   const { productId, variantId } = req.params;
@@ -132,23 +132,23 @@ export const incrementCartItemQuantity = async (req, res) => {
   }
 
   const updatedCart = await cartModel.findOneAndUpdate(
-  {
-    user: req.user._id,
-    "items.product": productId,
-    "items.variant": variantId,
-  },
-  { $inc: { "items.$.quantity": 1 } },
-  { new: true },
-);
+    {
+      user: req.user._id,
+      "items.product": productId,
+      "items.variant": variantId,
+    },
+    { $inc: { "items.$.quantity": 1 } },
+    { new: true },
+  );
 
-if (!updatedCart) {
-  return res.status(404).json({
-    message: "Item not found in cart",
-    success: false,
-  });
-}
+  if (!updatedCart) {
+    return res.status(404).json({
+      message: "Item not found in cart",
+      success: false,
+    });
+  }
 
-let finalCart = await getCartDetails(req.user._id);
+  let finalCart = await getCartDetails(req.user._id);
   if (!finalCart) {
     finalCart = {
       _id: updatedCart._id,
@@ -248,20 +248,22 @@ export const removeFromCart = async (req, res) => {
 
   const originalLength = cart.items.length;
 
-cart.items = cart.items.filter(
-  (item) =>
-    !(item.product.toString() === productId &&
-      item.variant?.toString() === variantId)
-);
+  cart.items = cart.items.filter(
+    (item) =>
+      !(
+        item.product.toString() === productId &&
+        item.variant?.toString() === variantId
+      ),
+  );
 
-if (cart.items.length === originalLength) {
-  return res.status(404).json({
-    message: "Item not found in cart",
-    success: false,
-  });
-}
+  if (cart.items.length === originalLength) {
+    return res.status(404).json({
+      message: "Item not found in cart",
+      success: false,
+    });
+  }
 
-await cart.save();
+  await cart.save();
 
   let finalCart = await getCartDetails(req.user._id);
   if (!finalCart) {
@@ -348,12 +350,16 @@ export const createOrderController = async (req, res) => {
       orderItems,
     });
 
-     await cartModel.findOneAndUpdate(
-       { user: req.user._id },
-       { $set: { items: [] } },
-     );
+    await cartModel.findOneAndUpdate(
+      { user: req.user._id },
+      { $set: { items: [] } },
+    );
 
-    emailService.sendOrderConfirmationEmail(req.user.email, req.user.fullName, payment);
+    emailService.sendOrderConfirmationEmail(
+      req.user.email,
+      req.user.fullName,
+      payment,
+    );
 
     return res.status(200).json({
       message: "Order placed successfully (Cash on Delivery)",
@@ -434,8 +440,11 @@ export const verifyOrderController = async (req, res) => {
     { new: true },
   );
 
-   emailService.sendOrderConfirmationEmail(req.user.email, req.user.fullName, payment);
-
+  emailService.sendOrderConfirmationEmail(
+    req.user.email,
+    req.user.fullName,
+    payment,
+  );
 
   return res.status(200).json({
     message: "Payment verified successfully",
@@ -443,7 +452,6 @@ export const verifyOrderController = async (req, res) => {
     payment,
   });
 };
-
 
 export const getUserOrders = async (req, res) => {
   try {
@@ -489,8 +497,11 @@ export const cancelOrder = async (req, res) => {
     order.fulfillmentStatus = "cancelled";
     await order.save();
 
-     emailService.sendOrderCancellationEmail(req.user.email, req.user.fullName, order);
-
+    emailService.sendOrderCancellationEmail(
+      req.user.email,
+      req.user.fullName,
+      order,
+    );
 
     return res.status(200).json({
       success: true,
@@ -642,9 +653,15 @@ export const updateFulfillmentStatus = async (req, res) => {
   const { orderId } = req.params;
   const { fulfillmentStatus } = req.body;
 
-    console.log("UPDATE FULFILLMENT:", orderId, fulfillmentStatus);
+  console.log("UPDATE FULFILLMENT:", orderId, fulfillmentStatus);
 
-  const validStatuses = ["processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
+  const validStatuses = [
+    "processing",
+    "shipped",
+    "out_for_delivery",
+    "delivered",
+    "cancelled",
+  ];
 
   if (!validStatuses.includes(fulfillmentStatus)) {
     return res.status(400).json({ message: "Invalid fulfillment status" });
@@ -658,12 +675,10 @@ export const updateFulfillmentStatus = async (req, res) => {
     }
 
     if (order.fulfillmentStatus === "delivered") {
-       return res.status(400).json({
-         message:
-           "This order has already been delivered and cannot be changed.",
-       });
-     }
-
+      return res.status(400).json({
+        message: "This order has already been delivered and cannot be changed.",
+      });
+    }
 
     order.fulfillmentStatus = fulfillmentStatus;
 
@@ -688,7 +703,9 @@ export const updateFulfillmentStatus = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Error updating fulfillment status" });
+    return res
+      .status(500)
+      .json({ message: "Error updating fulfillment status" });
   }
 };
 
@@ -768,7 +785,13 @@ export const getAnalytics = async (req, res) => {
         { $match: { createdAt: { $gte: periodStart } } },
         {
           $group: {
-            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            _id: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt",
+                timezone: "Asia/Kolkata",
+              },
+            },
             count: { $sum: 1 },
           },
         },
@@ -913,5 +936,5 @@ export const getAnalytics = async (req, res) => {
 //     success: true,
 //     payment,
 //   });
-  
+
 // }
