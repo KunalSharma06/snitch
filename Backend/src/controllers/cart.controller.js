@@ -513,11 +513,21 @@ export const getAllOrders = async (req, res) => {
     }
 
     if (search) {
-      filter.$or = [
+      const orConditions = [
         { "address.fullName": { $regex: search, $options: "i" } },
         { "address.phone": { $regex: search, $options: "i" } },
-        { _id: mongoose.Types.ObjectId.isValid(search) ? search : null },
       ];
+      orConditions.push({
+        $expr: {
+          $regexMatch: {
+            input: { $toString: "$_id" },
+            regex: search,
+            options: "i",
+          },
+        },
+      });
+
+      filter.$or = orConditions;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
