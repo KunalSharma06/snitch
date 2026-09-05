@@ -494,35 +494,55 @@ useEffect(() => {
     </>
   );
 };
+
 const OrderProgressTracker = ({ fulfillmentStatus }) => {
   const currentIndex = TRACKER_STEPS.findIndex(
     (s) => s.key === fulfillmentStatus,
   );
-  // If status isn't found (e.g. undefined), treat as step 0 (processing)
   const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
   return (
-    <div className="flex items-center w-full py-2">
+    <div className="flex items-start w-full px-2">
       {TRACKER_STEPS.map((step, idx) => {
-        const isCompleted = idx < activeIndex;
         const isCurrent = idx === activeIndex;
+        const isPassed = idx < activeIndex;
         const isDone = idx <= activeIndex;
 
         return (
           <React.Fragment key={step.key}>
             <div
               className="flex flex-col items-center flex-shrink-0"
-              style={{ width: "70px" }}
+              style={{ width: "76px" }}
             >
               <div
-                className="w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-300"
+                className="rounded-full flex items-center justify-center transition-all duration-500"
                 style={{
-                  backgroundColor: isDone ? "#2e7d32" : "#e4e2df",
-                  border: isCurrent ? "2px solid #2e7d32" : "none",
+                  width: isCurrent ? "18px" : "12px",
+                  height: isCurrent ? "18px" : "12px",
+                  backgroundColor: isDone ? "#C9A96E" : "#fff",
+                  border: isDone ? "none" : "1.5px solid #d0c5b5",
+                  boxShadow: isCurrent
+                    ? "0 0 0 4px rgba(201,169,110,0.18)"
+                    : "none",
                 }}
-              />
+              >
+                {isPassed && (
+                  <svg
+                    width="8"
+                    height="8"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fbf9f6"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                )}
+              </div>
               <p
-                className="text-[8px] uppercase tracking-wider text-center mt-2 leading-tight"
+                className="text-[8px] uppercase tracking-[0.12em] text-center mt-2.5 leading-tight font-medium"
                 style={{ color: isDone ? "#1b1c1a" : "#B5ADA3" }}
               >
                 {step.label}
@@ -530,10 +550,13 @@ const OrderProgressTracker = ({ fulfillmentStatus }) => {
             </div>
             {idx < TRACKER_STEPS.length - 1 && (
               <div
-                className="flex-1 h-[2px] transition-colors duration-300"
+                className="flex-1 transition-colors duration-500"
                 style={{
-                  backgroundColor: idx < activeIndex ? "#2e7d32" : "#e4e2df",
-                  marginBottom: "18px",
+                  height: "1.5px",
+                  backgroundColor: idx < activeIndex ? "#C9A96E" : "#e4e2df",
+                  marginTop: "5px",
+                  marginLeft: "-4px",
+                  marginRight: "-4px",
                 }}
               />
             )}
