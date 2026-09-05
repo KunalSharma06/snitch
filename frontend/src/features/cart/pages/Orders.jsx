@@ -48,6 +48,13 @@ const FULFILLMENT_COLORS = {
   cancelled: "#c0392b",
 };
 
+const TRACKER_STEPS = [
+  { key: "processing", label: "Processing" },
+  { key: "shipped", label: "Shipped" },
+  { key: "out_for_delivery", label: "Out for Delivery" },
+  { key: "delivered", label: "Delivered" },
+];
+
 const Orders = () => {
   const { handleGetUserOrders, handleCancelOrder } = useCart();
   const navigate = useNavigate();
@@ -328,6 +335,20 @@ useEffect(() => {
                     </div>
                   </div>
 
+                  {order.status !== "cancelled" &&
+                    order.fulfillmentStatus !== "cancelled" && (
+                      <div
+                        className="mb-5 pb-5"
+                        style={{
+                          borderBottom: `1px solid ${tokens.surfaceHighest}`,
+                        }}
+                      >
+                        <OrderProgressTracker
+                          fulfillmentStatus={order.fulfillmentStatus}
+                        />
+                      </div>
+                    )}
+                  
                   <div className="flex flex-col gap-4 mb-5">
                     {order.orderItems.map((item, idx) => (
                       <div
@@ -471,6 +492,55 @@ useEffect(() => {
         </div>
       )}
     </>
+  );
+};
+const OrderProgressTracker = ({ fulfillmentStatus }) => {
+  const currentIndex = TRACKER_STEPS.findIndex(
+    (s) => s.key === fulfillmentStatus,
+  );
+  // If status isn't found (e.g. undefined), treat as step 0 (processing)
+  const activeIndex = currentIndex === -1 ? 0 : currentIndex;
+
+  return (
+    <div className="flex items-center w-full py-2">
+      {TRACKER_STEPS.map((step, idx) => {
+        const isCompleted = idx < activeIndex;
+        const isCurrent = idx === activeIndex;
+        const isDone = idx <= activeIndex;
+
+        return (
+          <React.Fragment key={step.key}>
+            <div
+              className="flex flex-col items-center flex-shrink-0"
+              style={{ width: "70px" }}
+            >
+              <div
+                className="w-4 h-4 rounded-full flex items-center justify-center transition-colors duration-300"
+                style={{
+                  backgroundColor: isDone ? "#2e7d32" : "#e4e2df",
+                  border: isCurrent ? "2px solid #2e7d32" : "none",
+                }}
+              />
+              <p
+                className="text-[8px] uppercase tracking-wider text-center mt-2 leading-tight"
+                style={{ color: isDone ? "#1b1c1a" : "#B5ADA3" }}
+              >
+                {step.label}
+              </p>
+            </div>
+            {idx < TRACKER_STEPS.length - 1 && (
+              <div
+                className="flex-1 h-[2px] transition-colors duration-300"
+                style={{
+                  backgroundColor: idx < activeIndex ? "#2e7d32" : "#e4e2df",
+                  marginBottom: "18px",
+                }}
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
   );
 };
 
