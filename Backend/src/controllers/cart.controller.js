@@ -77,13 +77,18 @@ export const addToCart = async (req, res) => {
 };
 
 export const getCart = async (req, res) => {
-  const user = req.user;
+  const userId = req.user._id;
+  await cartModel.updateOne(
+    { user: userId },
+    { $setOnInsert: { user: userId, items: [] } },
+    { upsert: true },
+  );
 
-  let cart = await getCartDetails(user._id);
-
-  if (!cart) {
-    cart = await cartModel.create({ user: user._id });
-  }
+  const cart = (await getCartDetails(userId)) || {
+    items: [],
+    totalPrice: 0,
+    currency: "INR",
+  };
 
   return res.status(200).json({
     message: "Cart fetched successfully",
