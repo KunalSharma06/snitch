@@ -333,17 +333,16 @@ useEffect(() => {
                           </span>
                         )}
                     </div>
-                    {order.status === "cancelled" &&
-                      order.cancellationReason && (
-                        <p
-                          className="text-[11px] mt-2"
-                          style={{ color: "#c0392b" }}
-                        >
-                          Your order has been cancelled:{" "}
-                          {order.cancellationReason}
-                        </p>
-                      )}
                   </div>
+
+                  {order.status === "cancelled" && order.cancellationReason && (
+                    <p
+                      className="text-[11px] mb-5"
+                      style={{ color: "#c0392b" }}
+                    >
+                      Your order has been cancelled: {order.cancellationReason}
+                    </p>
+                  )}
 
                   {order.status !== "cancelled" &&
                     order.fulfillmentStatus !== "cancelled" && (
