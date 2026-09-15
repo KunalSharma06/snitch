@@ -533,9 +533,10 @@ const OrderProgressTracker = ({ fulfillmentStatus }) => {
   return (
     <div className="flex items-start w-full px-2">
       {TRACKER_STEPS.map((step, idx) => {
-        const isCurrent = idx === activeIndex;
-        const isPassed = idx < activeIndex;
-        const isDone = idx <= activeIndex;
+       const isCurrent = idx === activeIndex;
+       const isLastStep = idx === TRACKER_STEPS.length - 1;
+       const isPassed = idx < activeIndex || (isCurrent && isLastStep);
+       const isDone = idx <= activeIndex;
 
         return (
           <React.Fragment key={step.key}>
