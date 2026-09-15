@@ -335,34 +335,42 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {order.status === "cancelled" && order.cancellationReason && (
-                    <div
-                      className="mb-5 p-4 flex items-start gap-2.5"
-                      style={{ backgroundColor: "#fdf0ee" }}
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#c0392b"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mt-0.5 flex-shrink-0"
+                  {order.status === "cancelled" &&
+                    order.cancelledBy === "admin" &&
+                    order.cancellationReason && (
+                      <div
+                        className="mb-5 p-4 flex items-start gap-2.5"
+                        style={{ backgroundColor: "#fdf0ee" }}
                       >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 8v4M12 16h.01" />
-                      </svg>
-                      <p
-                        className="text-xs leading-relaxed"
-                        style={{ color: "#c0392b" }}
-                      >
-                        <span className="font-medium">Order cancelled:</span>{" "}
-                        {order.cancellationReason}
-                      </p>
-                    </div>
-                  )}
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#c0392b"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mt-0.5 flex-shrink-0"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 8v4M12 16h.01" />
+                        </svg>
+                        <p
+                          className="text-xs leading-relaxed"
+                          style={{ color: "#c0392b" }}
+                        >
+                          <span className="font-medium">Order cancelled:</span>{" "}
+                          {order.cancellationReason}
+                          {order.cancelledAt && (
+                            <span style={{ color: tokens.muted }}>
+                              {" "}
+                              · {formatDate(order.cancelledAt)}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
 
                   {order.status !== "cancelled" &&
                     order.fulfillmentStatus !== "cancelled" && (

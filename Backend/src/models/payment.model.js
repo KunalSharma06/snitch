@@ -56,6 +56,15 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
+    cancelledBy: {
+      type: String,
+      enum: ["customer", "admin"],
+      default: null,
+    },
     orderItems: [
       {
         title: String,

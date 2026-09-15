@@ -500,6 +500,8 @@ export const cancelOrder = async (req, res) => {
 
     order.status = "cancelled";
     order.fulfillmentStatus = "cancelled";
+    order.cancelledAt = new Date();
+    order.cancelledBy = "customer";
     await order.save();
 
     emailService.sendOrderCancellationEmail(
@@ -545,6 +547,8 @@ export const adminCancelOrder = async (req, res) => {
     order.status = "cancelled";
     order.fulfillmentStatus = "cancelled";
     order.cancellationReason = reason || "Cancelled by admin";
+    order.cancelledAt = new Date();
+    order.cancelledBy = "admin";
     await order.save();
 
     const io = req.app.get("io");
