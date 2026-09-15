@@ -56,6 +56,7 @@ const AdminOrders = () => {
     handleGetAllOrders,
     handleUpdateFulfillmentStatus,
     handleGetAdminStats,
+    handleAdminCancelOrder,
   } = useAdmin();
 
   const [orders, setOrders] = useState([]);
@@ -66,6 +67,10 @@ const AdminOrders = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
+
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -127,6 +132,22 @@ const AdminOrders = () => {
       );
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const confirmAdminCancel = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    try {
+      await handleAdminCancelOrder(cancelTarget._id, cancelReason.trim());
+      await fetchOrders();
+      await fetchStats();
+      setCancelTarget(null);
+      setCancelReason("");
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -500,6 +521,17 @@ const AdminOrders = () => {
                             ))}
                           </select>
                         )}
+                        {fulfillment !== "cancelled" &&
+                          order.status !== "cancelled" &&
+                          fulfillment !== "delivered" && (
+                            <button
+                              onClick={() => setCancelTarget(order)}
+                              className="text-[10px] uppercase tracking-wider font-bold underline cursor-pointer"
+                              style={{ color: "#c0392b" }}
+                            >
+                              Cancel Order
+                            </button>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -543,6 +575,65 @@ const AdminOrders = () => {
           )}
         </div>
       </div>
+      {cancelTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(27,28,26,0.55)" }}
+        >
+          <div
+            className="w-full max-w-sm p-8"
+            style={{ backgroundColor: tokens.surfaceLowest }}
+          >
+            <h3
+              className="font-light text-2xl mb-2"
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                color: tokens.onSurface,
+              }}
+            >
+              Cancel This Order?
+            </h3>
+            <p className="text-xs mb-4" style={{ color: tokens.secondary }}>
+              This will notify the customer by email. Please provide a reason.
+            </p>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="e.g. Item out of stock"
+              rows={3}
+              className="w-full p-3 text-sm border mb-4 focus:outline-none"
+              style={{
+                borderColor: tokens.surfaceHighest,
+                color: tokens.onSurface,
+              }}
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setCancelTarget(null);
+                  setCancelReason("");
+                }}
+                disabled={cancelling}
+                className="flex-1 py-3 text-[10px] uppercase tracking-wider border cursor-pointer"
+                style={{
+                  borderColor: tokens.surfaceHighest,
+                  color: tokens.onSurface,
+                }}
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={confirmAdminCancel}
+                disabled={cancelling}
+                className="flex-1 py-3 text-[10px] uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                style={{ backgroundColor: "#c0392b", color: "#fff" }}
+              >
+                {cancelling ? "Cancelling..." : "Yes, Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

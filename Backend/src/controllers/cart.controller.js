@@ -519,6 +519,61 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
+export const adminCancelOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const order = await paymentModel
+      .findById(orderId)
+      .populate("user", "fullName email");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status === "cancelled") {
+      return res.status(400).json({ message: "Order is already cancelled" });
+    }
+
+    if (order.fulfillmentStatus === "delivered") {
+      return res
+        .status(400)
+        .json({ message: "Delivered orders cannot be cancelled" });
+    }
+
+    order.status = "cancelled";
+    order.fulfillmentStatus = "cancelled";
+    order.cancellationReason = reason || "Cancelled by admin";
+    await order.save();
+
+    const io = req.app.get("io");
+    io.to(order.user._id.toString()).emit("orderStatusUpdated", {
+      orderId: order._id.toString(),
+      fulfillmentStatus: order.fulfillmentStatus,
+      status: order.status,
+    });
+
+    if (order.user?.email) {
+      emailService.sendOrderCancellationEmail(
+        order.user.email,
+        order.user.fullName,
+        order,
+        order.cancellationReason,
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error cancelling order" });
+  }
+};
+
 export const getAllOrders = async (req, res) => {
   const { status, search, page = 1, limit = 20 } = req.query;
 
@@ -658,8 +713,6 @@ export const updateFulfillmentStatus = async (req, res) => {
   const { orderId } = req.params;
   const { fulfillmentStatus } = req.body;
 
-  console.log("UPDATE FULFILLMENT:", orderId, fulfillmentStatus);
-
   const validStatuses = [
     "processing",
     "shipped",
@@ -673,7 +726,9 @@ export const updateFulfillmentStatus = async (req, res) => {
   }
 
   try {
-    const order = await paymentModel.findById(orderId);
+    const order = await paymentModel
+      .findById(orderId)
+      .populate("user", "fullName email");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -686,20 +741,37 @@ export const updateFulfillmentStatus = async (req, res) => {
     }
 
     order.fulfillmentStatus = fulfillmentStatus;
-
-    // Cancelling fulfillment also cancels the order overall
-    if (fulfillmentStatus === "cancelled") {
-      order.status = "cancelled";
-    }
-
     await order.save();
 
     const io = req.app.get("io");
-    io.to(order.user.toString()).emit("orderStatusUpdated", {
+    io.to(order.user._id.toString()).emit("orderStatusUpdated", {
       orderId: order._id.toString(),
       fulfillmentStatus: order.fulfillmentStatus,
       status: order.status,
     });
+
+    // Fire-and-forget email alerts — don't block the response on email sending
+    if (order.user?.email) {
+      if (fulfillmentStatus === "shipped") {
+        emailService.sendOrderShippedEmail(
+          order.user.email,
+          order.user.fullName,
+          order,
+        );
+      } else if (fulfillmentStatus === "out_for_delivery") {
+        emailService.sendOrderOutForDeliveryEmail(
+          order.user.email,
+          order.user.fullName,
+          order,
+        );
+      } else if (fulfillmentStatus === "delivered") {
+        emailService.sendOrderDeliveredEmail(
+          order.user.email,
+          order.user.fullName,
+          order,
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,

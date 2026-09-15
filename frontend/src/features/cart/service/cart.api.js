@@ -87,3 +87,8 @@ export async function getAnalyticsApi(range) {
   const res = await cartApiInstance.get("/admin/analytics", { params: { range } });
   return res.data;
 }
+
+export async function adminCancelOrderApi(orderId, reason) {
+  const res = await cartApiInstance.patch(`/admin/orders/${orderId}/cancel`, { reason });
+  return res.data;
+}

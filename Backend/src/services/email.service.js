@@ -777,7 +777,7 @@ class EmailService {
     }
   }
 
-  async sendOrderCancellationEmail(email, fullName, order) {
+  async sendOrderCancellationEmail(email, fullName, order, reason = "") {
     try {
       const itemsHtml = order.orderItems
         .map(
@@ -821,9 +821,16 @@ class EmailService {
                 <p style="color: #1b1c1a; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">
                   Hi <strong>${fullName}</strong>,
                 </p>
-                <p style="color: #7A6E63; font-size: 15px; line-height: 1.6; margin: 0 0 28px 0;">
-                  As requested, we've cancelled the following order. No further action is needed.
-                </p>
+               <p style="color: #7A6E63; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+  Your order has been cancelled. No further action is needed.
+</p>
+${
+  reason
+    ? `<div style="background-color: #fdf0ee; border-left: 4px solid #c0392b; padding: 14px 18px; border-radius: 4px; margin-bottom: 24px;">
+        <p style="margin: 0; color: #c0392b; font-size: 13px; line-height: 1.6;"><strong>Reason:</strong> ${reason}</p>
+      </div>`
+    : ""
+}
 
                 <!-- Order Summary -->
                 <p style="color: #C9A96E; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin: 0 0 12px 0;">
@@ -898,6 +905,86 @@ class EmailService {
     } catch (error) {
       console.log("Error sending order cancellation email:", error);
     }
+  }
+
+  async sendOrderStatusEmail(email, fullName, order, statusInfo) {
+    try {
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+      const html = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f3f0; padding: 40px 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #fbf9f6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <div style="background-color: #1b1c1a; padding: 48px 30px; text-align: center;">
+              <p style="color: #C9A96E; font-size: 12px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 12px 0; font-weight: 600;">Snitch</p>
+              <h1 style="color: #fbf9f6; font-size: 26px; font-weight: 300; margin: 0;">${statusInfo.emoji} ${statusInfo.heading}</h1>
+            </div>
+            <div style="padding: 40px 36px;">
+              <p style="color: #1b1c1a; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">Hi <strong>${fullName}</strong>,</p>
+              <p style="color: #7A6E63; font-size: 15px; line-height: 1.6; margin: 0 0 28px 0;">${statusInfo.message}</p>
+
+              <div style="background-color: #f5f3f0; border-radius: 8px; padding: 18px 20px; margin-bottom: 28px;">
+                <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7A6E63; font-weight: 600;">Order</p>
+                <p style="margin: 0; font-size: 15px; color: #1b1c1a; font-weight: 500;">#${order._id.toString().slice(-8).toUpperCase()}</p>
+              </div>
+
+              <div style="text-align: center;">
+                <a href="${clientUrl}/orders" style="display: inline-block; padding: 16px 40px; background-color: #1b1c1a; color: #fbf9f6; text-decoration: none; text-transform: uppercase; font-size: 12px; letter-spacing: 2.5px; border-radius: 4px; font-weight: 500;">
+                  View Your Order
+                </a>
+              </div>
+            </div>
+            <div style="border-top: 1px solid #e4e2df; margin: 0 36px;"></div>
+            <div style="padding: 28px 36px; text-align: center;">
+              <p style="color: #B5ADA3; font-size: 11px; margin: 0;">© 2026 Snitch Clothing. All rights reserved.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const { data, error } = await this.resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL,
+        to: [email],
+        subject: statusInfo.subject,
+        html,
+      });
+
+      if (error) {
+        console.error("Resend error:", error);
+        throw error;
+      }
+      console.log("Status email sent:", data?.id);
+    } catch (error) {
+      console.log("Error sending status email:", error);
+    }
+  }
+
+  async sendOrderShippedEmail(email, fullName, order) {
+    return this.sendOrderStatusEmail(email, fullName, order, {
+      subject: "Your Snitch Order Has Shipped 📦",
+      heading: "On Its Way",
+      emoji: "📦",
+      message:
+        "Great news — your order has shipped and is now on its way to you.",
+    });
+  }
+
+  async sendOrderOutForDeliveryEmail(email, fullName, order) {
+    return this.sendOrderStatusEmail(email, fullName, order, {
+      subject: "Your Snitch Order is Out for Delivery 🚚",
+      heading: "Out for Delivery",
+      emoji: "🚚",
+      message: "Your order is out for delivery and should arrive very soon.",
+    });
+  }
+
+  async sendOrderDeliveredEmail(email, fullName, order) {
+    return this.sendOrderStatusEmail(email, fullName, order, {
+      subject: "Your Snitch Order Has Been Delivered ✅",
+      heading: "Delivered",
+      emoji: "✅",
+      message:
+        "Your order has been delivered. We hope you love it! If anything's wrong, just reply to this email.",
+    });
   }
 }
 

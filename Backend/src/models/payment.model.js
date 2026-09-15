@@ -4,23 +4,30 @@ import priceSchema from "./price.schema.js";
 const paymentSchema = new mongoose.Schema(
   {
     status: {
-    type: String,
-    enum: ["pending", "paid", "failed", "cod_pending", "cancelled"],
-    default: "pending",
-  },
-  estimatedDelivery: {
-    type: Date,
-  },
+      type: String,
+      enum: ["pending", "paid", "failed", "cod_pending", "cancelled"],
+      default: "pending",
+    },
+
+    estimatedDelivery: {
+      type: Date,
+    },
     paymentMethod: {
       type: String,
       enum: ["cod", "razorpay"],
       default: "razorpay",
     },
     fulfillmentStatus: {
-    type: String,
-    enum: ["processing", "shipped", "out_for_delivery", "delivered", "cancelled"],
-    default: "processing",
-  },
+      type: String,
+      enum: [
+        "processing",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
+      default: "processing",
+    },
     address: {
       fullName: String,
       phone: String,
@@ -44,6 +51,10 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,
+    },
+    cancellationReason: {
+      type: String,
+      default: "",
     },
     orderItems: [
       {

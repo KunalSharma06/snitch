@@ -333,6 +333,16 @@ useEffect(() => {
                           </span>
                         )}
                     </div>
+                    {order.status === "cancelled" &&
+                      order.cancellationReason && (
+                        <p
+                          className="text-[11px] mt-2"
+                          style={{ color: "#c0392b" }}
+                        >
+                          Your order has been cancelled:{" "}
+                          {order.cancellationReason}
+                        </p>
+                      )}
                   </div>
 
                   {order.status !== "cancelled" &&
@@ -348,7 +358,7 @@ useEffect(() => {
                         />
                       </div>
                     )}
-                  
+
                   <div className="flex flex-col gap-4 mb-5">
                     {order.orderItems.map((item, idx) => (
                       <div
