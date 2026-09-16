@@ -99,13 +99,17 @@ useEffect(() => {
   };
 }, []);
 
-  const canCancel = (order) => {
-    if (["cancelled", "cod_delivered", "failed"].includes(order.status))
-      return false;
-    const hours = (Date.now() - new Date(order.createdAt)) / (1000 * 60 * 60);
-    return hours <= 24;
-  };
+   const canCancel = (order) => {
+     if (["cancelled", "cod_delivered", "failed"].includes(order.status))
+       return false;
 
+     if (["out_for_delivery", "delivered"].includes(order.fulfillmentStatus)) {
+       return false;
+     }
+
+     const hours = (Date.now() - new Date(order.createdAt)) / (1000 * 60 * 60);
+     return hours <= 24;
+   };
  const openCancelModal = (orderId) => {
    setCancelModal({ open: true, orderId });
  };
