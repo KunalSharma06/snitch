@@ -850,7 +850,7 @@ const Checkout = () => {
               <div
                 className="sticky p-6 sm:p-8"
                 style={{
-                  top: "56px",
+                  top: "24px",
                   backgroundColor: tokens.surfaceLowest,
                   boxShadow: "0 20px 40px rgba(27,28,26,0.05)",
                 }}
