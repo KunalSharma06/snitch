@@ -1084,7 +1084,7 @@ const Checkout = () => {
               on its way.
             </p>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/orders")}
               className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium cursor-pointer transition-all duration-300"
               style={{
                 backgroundColor: tokens.onSurface,
