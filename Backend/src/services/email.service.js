@@ -489,7 +489,7 @@ class EmailService {
       const { data, error } = await this.resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL,
         to: [email],
-        subject: "Your Snitch Clothing OTP Verification Code",
+        subject: mailOptions.subject,
         html: mailOptions.html,
       });
 
@@ -607,7 +607,7 @@ class EmailService {
       const { data, error } = await this.resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL,
         to: [email],
-        subject: "Your Snitch Clothing OTP Verification Code",
+        subject: mailOptions.subject,
         html: mailOptions.html,
       });
 
@@ -762,7 +762,7 @@ class EmailService {
       const { data, error } = await this.resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL,
         to: [email],
-        subject: "Your Snitch Clothing OTP Verification Code",
+        subject: mailOptions.subject,
         html: mailOptions.html,
       });
 
@@ -892,7 +892,7 @@ ${
       const { data, error } = await this.resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL,
         to: [email],
-        subject: "Your Snitch Clothing OTP Verification Code",
+        subject: mailOptions.subject,
         html: mailOptions.html,
       });
 
@@ -911,21 +911,66 @@ ${
     try {
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 
+      const itemsHtml = order.orderItems
+        .map(
+          (item) => `
+        <tr>
+          <td style="padding: 14px 0; border-bottom: 1px solid #e4e2df;">
+            <img src="${item.images?.[0]?.url || ""}" width="56" height="70" style="object-fit: cover; border-radius: 6px; display: block;" />
+          </td>
+          <td style="padding: 14px 16px; border-bottom: 1px solid #e4e2df;">
+            <p style="margin: 0; font-size: 14px; color: #1b1c1a;">${item.title}</p>
+            <p style="margin: 6px 0 0; font-size: 12px; color: #7A6E63; text-transform: uppercase; letter-spacing: 0.5px;">Qty: ${item.quantity}</p>
+          </td>
+          <td style="padding: 14px 0; border-bottom: 1px solid #e4e2df; text-align: right; font-size: 14px; color: #1b1c1a; white-space: nowrap;">
+            ${item.price.currency} ${(item.price.amount * item.quantity).toLocaleString("en-IN")}
+          </td>
+        </tr>
+      `,
+        )
+        .join("");
+
+      const addressText = order.address
+        ? `${order.address.line1}${order.address.line2 ? `, ${order.address.line2}` : ""}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`
+        : "";
+
       const html = `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f5f3f0; padding: 40px 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #fbf9f6; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+
             <div style="background-color: #1b1c1a; padding: 48px 30px; text-align: center;">
               <p style="color: #C9A96E; font-size: 12px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 12px 0; font-weight: 600;">Snitch</p>
               <h1 style="color: #fbf9f6; font-size: 26px; font-weight: 300; margin: 0;">${statusInfo.emoji} ${statusInfo.heading}</h1>
             </div>
+
             <div style="padding: 40px 36px;">
               <p style="color: #1b1c1a; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0;">Hi <strong>${fullName}</strong>,</p>
               <p style="color: #7A6E63; font-size: 15px; line-height: 1.6; margin: 0 0 28px 0;">${statusInfo.message}</p>
 
               <div style="background-color: #f5f3f0; border-radius: 8px; padding: 18px 20px; margin-bottom: 28px;">
-                <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7A6E63; font-weight: 600;">Order</p>
+                <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7A6E63; font-weight: 600;">Order Number</p>
                 <p style="margin: 0; font-size: 15px; color: #1b1c1a; font-weight: 500;">#${order._id.toString().slice(-8).toUpperCase()}</p>
+                ${
+                  addressText
+                    ? `<p style="margin: 12px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7A6E63; font-weight: 600;">Delivering To</p>
+                       <p style="margin: 4px 0 0 0; font-size: 13px; color: #1b1c1a; line-height: 1.5;">${addressText}</p>`
+                    : ""
+                }
               </div>
+
+              <p style="color: #C9A96E; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin: 0 0 12px 0;">Order Summary</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 8px;">
+                ${itemsHtml}
+              </table>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 16px 0 32px 0;">
+                <tr>
+                  <td style="font-size: 14px; font-weight: 600; color: #1b1c1a; padding-top: 10px;">Total</td>
+                  <td style="font-size: 16px; font-weight: 600; color: #1b1c1a; text-align: right; padding-top: 10px;">
+                    ${order.price.currency} ${order.price.amount.toLocaleString("en-IN")}
+                  </td>
+                </tr>
+              </table>
 
               <div style="text-align: center;">
                 <a href="${clientUrl}/orders" style="display: inline-block; padding: 16px 40px; background-color: #1b1c1a; color: #fbf9f6; text-decoration: none; text-transform: uppercase; font-size: 12px; letter-spacing: 2.5px; border-radius: 4px; font-weight: 500;">
@@ -933,10 +978,13 @@ ${
                 </a>
               </div>
             </div>
+
             <div style="border-top: 1px solid #e4e2df; margin: 0 36px;"></div>
             <div style="padding: 28px 36px; text-align: center;">
+              <p style="color: #7A6E63; font-size: 13px; margin: 0 0 16px 0;">Questions about your order? Just reply to this email.</p>
               <p style="color: #B5ADA3; font-size: 11px; margin: 0;">© 2026 Snitch Clothing. All rights reserved.</p>
             </div>
+
           </div>
         </div>
       `;
@@ -964,7 +1012,7 @@ ${
       heading: "On Its Way",
       emoji: "📦",
       message:
-        "Great news — your order has shipped and is now on its way to you.",
+        "Great news — your order has shipped and is now on its way to you. Here's a summary of what's coming.",
     });
   }
 
@@ -973,7 +1021,8 @@ ${
       subject: "Your Snitch Order is Out for Delivery 🚚",
       heading: "Out for Delivery",
       emoji: "🚚",
-      message: "Your order is out for delivery and should arrive very soon.",
+      message:
+        "Your order is out for delivery and should arrive very soon. Keep an eye out!",
     });
   }
 
@@ -983,7 +1032,7 @@ ${
       heading: "Delivered",
       emoji: "✅",
       message:
-        "Your order has been delivered. We hope you love it! If anything's wrong, just reply to this email.",
+        "Your order has been delivered. We hope you love it! If anything's wrong, just reply to this email and we'll sort it out.",
     });
   }
 }
