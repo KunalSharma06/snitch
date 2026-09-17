@@ -848,8 +848,9 @@ const Checkout = () => {
             {/* RIGHT COLUMN — Order Summary */}
             <div className="w-full lg:w-[40%]">
               <div
-                className="sticky top-14 p-6 sm:p-8"
+                className="sticky p-6 sm:p-8"
                 style={{
+                  top: "56px",
                   backgroundColor: tokens.surfaceLowest,
                   boxShadow: "0 20px 40px rgba(27,28,26,0.05)",
                 }}
